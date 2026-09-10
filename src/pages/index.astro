@@ -1,0 +1,196 @@
+---
+import Base from 'layouts/Base.astro';
+import HeroGraphic from 'components/HeroGraphic.astro';
+
+const APPS = [
+  { name: 'Gallery', blurb: 'A photo and video album that reads what is already on your phone. It does not even ask for internet permission.', status: 'On Google Play', live: true },
+  { name: 'Recorder', blurb: 'Voice recording with a real waveform, marks while you record, and simple cut-and-fade editing afterwards.', status: 'In development', live: false },
+  { name: 'Files', blurb: 'A two-pane file manager. Mark on one side, copy or move to the other. The way file managers used to work.', status: 'In development', live: false },
+];
+
+const IDEA = [
+  ['No ads', 'Not a banner, not a full-screen interstitial, not “watch a video to unlock”. Nothing is sold to anyone.'],
+  ['No data', 'No analytics, no crash reporting, no identifiers, no cloud. Your files never leave the phone.'],
+  ['No account', 'Nothing to sign into, nothing to verify. Install it, open it, it works.'],
+  ['Free, and finished', 'Every feature is there on first launch. No Pro tier, no subscription, no locked folder.'],
+];
+---
+
+<Base
+  title="Simplify my app — free Android apps with no ads, no accounts, no tracking"
+  description="Gallery, Recorder and Files: plain Android apps that are free, collect nothing and upload nothing. No ads, no accounts, no subscriptions."
+>
+  <main>
+    <section class="hero-section">
+      <div class="shell hero">
+        <div class="copy rise">
+          <div class="kicker accent-kicker">Simplify my app</div>
+          <h1>Simple things should cost nothing.</h1>
+          <p>I got tired of tons of apps that put a banner, a paywall, a sign-in and a “Pro” tier in front of something simple. So I built the plain versions for myself, use them every day — and I give them to everyone else too.</p>
+          <p>They are free. There are no ads. Nothing is collected. Nothing is uploaded.</p>
+          <div class="ctas">
+            <a href="/apps" class="btn btn-accent">See the apps</a>
+            <a href="/privacy" class="btn btn-quiet">What we collect: nothing</a>
+          </div>
+          <div class="claims">
+            <span>No ads</span><span>·</span><span>No tracking</span><span>·</span><span>No accounts</span><span>·</span><span>Free forever</span>
+          </div>
+        </div>
+        <HeroGraphic />
+      </div>
+    </section>
+
+    <section class="shell block">
+      <h2 class="kicker">The whole idea</h2>
+      <div class="idea-grid">
+        {IDEA.map(([title, body]) => (
+          <div class="cell">
+            <div class="cell-title">{title}</div>
+            <div class="cell-body">{body}</div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <section class="shell block">
+      <div class="block-head">
+        <h2 class="kicker">The apps · 03</h2>
+        <a href="/apps" class="all">All apps →</a>
+      </div>
+      <div class="apps">
+        {APPS.map(({ name, blurb, status, live }) => (
+          <a href="/apps" class="app-row">
+            <span class="app-name">{name}</span>
+            <span class="app-blurb">{blurb}</span>
+            <span class:list={['app-status', { dev: !live }]}>{status}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="shell closing">
+      <div>
+        <h2>One person, one design language</h2>
+        <p>Every app here is built on the same system: the same themes, the same accent, the same type. Learn one, and you already know the next. Light, dark and pure black are all designed — not one of them is a dimmed copy of the other.</p>
+      </div>
+      <div>
+        <h2>Missing something?</h2>
+        <p>These are the apps I needed. Two of them are still being built, so this is the best moment to ask for something.</p>
+        <a href="/contact" class="btn btn-quiet">Request a feature</a>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .hero-section { border-bottom: 1px solid var(--hairline); }
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.05fr) minmax(240px, 0.95fr);
+    gap: 40px;
+    align-items: center;
+  }
+  .copy { padding: 35px 0 72px; }
+  .accent-kicker { font-size: 11.5px; color: var(--accent); margin-bottom: 24px; text-transform: uppercase; }
+  h1 {
+    margin: 0;
+    font-size: 54px;
+    line-height: 1.04;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    max-width: 14ch;
+    text-wrap: pretty;
+  }
+  .copy p {
+    margin: 26px 0 0;
+    font-size: 16.5px;
+    line-height: 1.62;
+    color: var(--text-muted);
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+  .copy p + p { margin-top: 14px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+  .claims {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 30px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .block { padding: 64px var(--gutter); border-bottom: 1px solid var(--hairline); }
+  .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
+  .block > .kicker { display: block; margin-bottom: 26px; }
+  .block-head > .kicker { margin: 0; }
+  .all {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .idea-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .cell { background: var(--bg); padding: 26px 22px; }
+  .cell-title { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 10px; }
+  .cell-body { font-size: 14.5px; line-height: 1.6; color: var(--text-muted); }
+
+  .apps { display: flex; flex-direction: column; }
+  .app-row {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    padding: 22px 4px;
+    border-top: 1px solid var(--hairline);
+    transition: padding var(--t-state) var(--enter);
+  }
+  .app-row:last-child { border-bottom: 1px solid var(--hairline); }
+  .app-row:hover { padding-left: 12px; color: inherit; }
+  .app-name { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; min-width: 130px; }
+  .app-blurb { font-size: 14.5px; line-height: 1.6; color: var(--text-muted); flex: 1; }
+  .app-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+  .app-status.dev { color: var(--accent); }
+
+  .closing {
+    padding: 64px var(--gutter) 90px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 40px;
+    align-items: start;
+  }
+  .closing h2 { margin: 0 0 14px; font-size: 30px; font-weight: 600; letter-spacing: -0.02em; }
+  .closing p { margin: 0 0 20px; font-size: 15.5px; line-height: 1.65; color: var(--text-muted); max-width: 48ch; }
+
+  @media (max-width: 860px) {
+    .hero { grid-template-columns: 1fr; gap: 0; }
+    .copy { padding: 64px 0 40px; }
+    h1 { font-size: 40px; }
+  }
+
+  @media (max-width: 560px) {
+    h1 { font-size: 34px; }
+    .app-row { flex-direction: column; gap: 8px; }
+    .app-name { min-width: 0; }
+  }
+</style>

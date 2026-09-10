@@ -1,0 +1,43 @@
+---
+interface Props { size?: 'sm' | 'lg' }
+const { size = 'sm' } = Astro.props;
+---
+
+<span class:list={['logo', size]}>
+  <span class="word">Simplify</span>
+  <span class="tag">app</span>
+  <span class="my" aria-hidden="true">my</span>
+</span>
+
+<style>
+  .logo { position: relative; display: inline-block; }
+  .word { display: block; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
+  .tag {
+    display: block;
+    font-family: var(--mono);
+    font-weight: 500;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    line-height: 1;
+    text-align: right;
+  }
+  .my {
+    position: absolute;
+    font-family: var(--hand);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    transform: rotate(-7deg);
+    pointer-events: none;
+  }
+
+  .sm { padding-right: 6px; }
+  .sm .word { font-size: 21px; }
+  .sm .tag { font-size: 9px; letter-spacing: 0.22em; margin-top: 5px; }
+  .sm .my { left: 8px; bottom: -7px; font-size: 25px; }
+
+  .lg { padding-right: 8px; }
+  .lg .word { font-size: 32px; }
+  .lg .tag { font-size: 11px; letter-spacing: 0.24em; margin-top: 7px; }
+  .lg .my { left: 12px; bottom: -10px; font-size: 38px; }
+</style>

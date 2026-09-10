@@ -1,0 +1,60 @@
+---
+// Four drifting columns of gradient tiles; each set is duplicated for the loop.
+const COLUMNS = [
+  { anim: 'driftUp 34s', tiles: [['#1F1F22','#17171A'],['#2E6B55','#1E4D3E'],['#5B3F73','#3D2A50'],['#8A7A3A','#5E5327'],['#5A6E9E','#3E4D70']] },
+  { anim: 'driftDown 42s', tiles: [['#3E7A5E','#2B5A45'],['#5E7E96','#3F5A6E'],['#62A882','#3F7A5D'],['#9878C2','#6E559A'],['#DBAE74','#B4864F']] },
+  { anim: 'driftUp 28s', tiles: [['#6E4FA0','#4C3573'],['#D7A83F','#A87F26'],['#C1735C','#93513E'],['#3EA089','#2A7565'],['#74BE8E','#4E9268']] },
+  { anim: 'driftDown 38s', tiles: [['#C2604A','#8E4434'],['#5A72E8','#3F52AE'],['#8FBBD1','#6B93A8'],['#DFA1AE','#B47484'],['#7FB6D8','#5A8AA9']] },
+];
+---
+
+<div class="graphic" aria-hidden="true">
+  <div class="columns">
+    {COLUMNS.map(({ anim, tiles }) => (
+      <div class="column" style={`animation: ${anim} linear infinite;`}>
+        {[...tiles, ...tiles].map(([from, to]) => (
+          <div class="tile" style={`background: linear-gradient(150deg, ${from}, ${to});`}></div>
+        ))}
+      </div>
+    ))}
+  </div>
+  <div class="fade"></div>
+</div>
+
+<style>
+  .graphic {
+    position: relative;
+    height: 560px;
+    overflow: hidden;
+    align-self: stretch;
+    margin-right: calc(-1 * var(--gutter));
+  }
+  .columns {
+    position: absolute;
+    inset: -14% -6% -14% 2%;
+    display: flex;
+    gap: 12px;
+    transform: rotate(-13deg);
+  }
+  .column { flex: 1; display: flex; flex-direction: column; gap: 12px; will-change: transform; }
+  .tile { aspect-ratio: 1; border-radius: var(--r-tile); }
+  .fade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--bg) 0%, rgba(0, 0, 0, 0) 34%),
+      linear-gradient(0deg, var(--bg) 0%, rgba(0, 0, 0, 0) 22%, rgba(0, 0, 0, 0) 78%, var(--bg) 100%);
+  }
+
+  @keyframes driftUp { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+  @keyframes driftDown { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+
+  @media (max-width: 860px) {
+    .graphic { height: 340px; margin: 0 calc(-1 * var(--gutter)); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .column { animation-play-state: paused !important; }
+  }
+</style>

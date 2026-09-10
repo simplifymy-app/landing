@@ -1,0 +1,93 @@
+---
+import Logo from 'components/Logo.astro';
+import { NAV } from 'consts';
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+---
+
+<header>
+  <div class="shell bar">
+    <a href="/" class="brand" title="Simplify my app"><Logo /></a>
+    <nav aria-label="Main">
+      {NAV.map(({ href, label }) => (
+        <a href={href} aria-current={path === href ? 'page' : undefined}>{label}</a>
+      ))}
+    </nav>
+    <button id="theme-toggle" type="button" title="Switch theme" aria-label="Switch theme">
+      <span class="dot"></span><span data-theme-label>DARK</span>
+    </button>
+  </div>
+</header>
+
+<style>
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg);
+    border-bottom: 1px solid var(--hairline);
+    transition: background var(--t-theme) var(--enter);
+  }
+  .bar { height: 68px; display: flex; align-items: center; gap: 28px; }
+  .brand { margin-right: auto; display: block; }
+  .brand:hover { color: inherit; }
+
+  nav { display: flex; align-items: center; gap: 22px; }
+  nav a {
+    position: relative;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 6px 0;
+    transition: color var(--t-state) var(--enter);
+  }
+  nav a:hover { color: var(--text); }
+  nav a[aria-current='page'] { color: var(--text); }
+  nav a[aria-current='page']::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  #theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: var(--r-control);
+    background: var(--surface-alt);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    color: var(--text-muted);
+    transition: background var(--t-state) var(--enter), color var(--t-state) var(--enter);
+  }
+  #theme-toggle:hover { color: var(--text); }
+  .dot { width: 10px; height: 10px; border-radius: 5px; background: var(--accent); display: block; }
+
+  @media (max-width: 720px) {
+    .bar { gap: 16px; flex-wrap: wrap; height: auto; padding-block: 14px; }
+    nav { order: 3; width: 100%; gap: 18px; }
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('theme-toggle')!;
+  const label = btn.querySelector('[data-theme-label]')!;
+  const sync = () => {
+    label.textContent = document.documentElement.dataset.theme === 'light' ? 'LIGHT' : 'DARK';
+  };
+  btn.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem('simplify-site-theme', next); } catch {}
+    sync();
+  });
+  sync();
+</script>

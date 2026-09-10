@@ -1,0 +1,32 @@
+---
+import Logo from 'components/Logo.astro';
+---
+
+<footer>
+  <div class="shell inner">
+    <div>
+      <Logo size="lg" />
+      <div class="note">Free · No ads · No data collected</div>
+    </div>
+    <nav class="links" aria-label="Footer">
+      <a href="/apps">Apps</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/contact">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  footer { border-top: 1px solid var(--hairline); }
+  .inner {
+    padding: 40px var(--gutter) 48px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+  .note { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 20px; }
+  .links { display: flex; gap: 20px; }
+  .links a { font-family: var(--mono); font-size: 11.5px; color: var(--text-muted); }
+</style>

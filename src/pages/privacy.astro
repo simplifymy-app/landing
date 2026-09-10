@@ -1,0 +1,112 @@
+---
+import Base from 'layouts/Base.astro';
+import { EMAIL, UPDATED_ON } from 'consts';
+
+const SECTIONS = [
+  ['Data we collect', 'None. We collect no personal data, no sensitive user data and no device data. No name, no email, no phone number, no contacts, no location, no advertising identifier, no device identifier, no installed-app list, no usage or diagnostic data. The apps have no user accounts and no server of our own to send anything to.'],
+  ['Data we share', 'None. Since nothing is collected, nothing is shared, sold or transferred to any third party, and there are no third-party SDKs for advertising, attribution or analytics inside the apps.'],
+  ['Your content stays on your device', 'Photos, videos, recordings and files are read and written on your device only. Nothing is uploaded, backed up or copied anywhere by us. Settings are saved locally and are removed when you uninstall the app. Gallery does not request the internet permission at all, so it is technically unable to send anything anywhere.'],
+];
+
+const PERMISSIONS = [
+  ['READ_MEDIA_IMAGES / VIDEO', 'To show the photos and videos already on your phone. They are read for display only.', false],
+  ['ACCESS_MEDIA_LOCATION', "Lets the details panel read a photo's own EXIF. Location is never stored by us and never transmitted.", false],
+  ['RECORD_AUDIO', 'Recorder only. Audio is written to a file on your device and stays there.', false],
+  ['Storage access', 'Files only. Needed to list, copy, move, rename and delete the files you choose to act on.', false],
+  ['INTERNET — not requested', "Gallery ships without it. You can verify this in the app's permission list on Google Play.", true],
+];
+
+const REST = [
+  ['No ads, no purchases', 'The apps contain no advertising and no ad networks, no in-app purchases and no subscriptions. There is no paid tier, so there is no payment data either.'],
+  ['Children', 'The apps are safe for any age in the sense that matters here: they collect nothing from anyone, children included.'],
+  ['This website', "No cookies are set, no analytics run and no visitor profile is built. Your theme choice is kept in your own browser's local storage and never sent anywhere. If you write to us, we see only what you put in the message."],
+  ['Provided as is', 'The apps are free and provided as is, without warranty of any kind. You choose what to open, record, copy or delete with them, and you use them for your own purposes and at your own risk. Deleting a file deletes it on your device — there is no cloud copy for us to restore.'],
+  ['Changes', 'If this policy ever changes, the new version is published on this page with a new date above. If an app ever needed to collect anything — it will not — that would be said here first, in plain words, before the release.'],
+];
+---
+
+<Base
+  title="Privacy policy — Simplify my app"
+  description="We collect no data at all. No analytics, no accounts, no advertising, no tracking. Everything you open, record or move stays on your device."
+>
+  <main class="shell">
+    <section class="intro">
+      <div class="kicker">Privacy policy · Last updated {UPDATED_ON}</div>
+      <h1 class="page-h1">We do not collect any data.</h1>
+      <p class="lede">This policy covers every app published by Simplify my app — Gallery, Recorder and Files — and this website. It is short because there is almost nothing to describe.</p>
+    </section>
+
+    <section class="summary-wrap">
+      <div class="summary">
+        <div class="kicker accent">In one paragraph</div>
+        <p>The apps do not collect, store, transmit, sell or share any personal, sensitive or device data. There is no account, no analytics, no advertising, no crash reporting and no tracking of any kind. Everything you open, record or move stays on your device. The apps are provided free of charge, as is, and you use them for your own purposes.</p>
+      </div>
+    </section>
+
+    <section class="body">
+      {SECTIONS.map(([title, text]) => (
+        <div class="entry">
+          <h2>{title}</h2>
+          <p>{text}</p>
+        </div>
+      ))}
+
+      <div class="entry">
+        <h2>Permissions, and why</h2>
+        <div class="perms">
+          {PERMISSIONS.map(([name, why, flagged]) => (
+            <div class="perm">
+              <span class:list={['perm-name', { flagged }]}>{name}</span>
+              <span class="perm-why">{why}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {REST.map(([title, text]) => (
+        <div class="entry">
+          <h2>{title}</h2>
+          <p>{text}</p>
+        </div>
+      ))}
+
+      <div class="entry last">
+        <h2>Contact</h2>
+        <p class="tight">Questions about this policy, or about a permission you saw in the store listing:</p>
+        <a href={`mailto:${EMAIL}`} class="email">{EMAIL}</a>
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .intro { padding: 80px 0 40px; }
+  .intro .kicker { display: block; margin-bottom: 22px; }
+  .page-h1 { max-width: 18ch; }
+  .lede { max-width: 60ch; }
+
+  .summary-wrap { padding: 0 0 40px; }
+  .summary { border: 1px solid var(--accent); border-radius: var(--r-card); padding: 26px; max-width: 760px; }
+  .accent { color: var(--accent); display: block; margin-bottom: 14px; }
+  .summary p { margin: 0; font-size: 16px; line-height: 1.65; color: var(--text); }
+
+  .body { padding: 0 0 90px; max-width: 760px; }
+  .entry { border-top: 1px solid var(--hairline); padding: 30px 0; }
+  .entry.last { border-bottom: 1px solid var(--hairline); }
+  h2 { margin: 0 0 12px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .entry p { margin: 0; font-size: 15.5px; line-height: 1.68; color: var(--text-muted); }
+  .tight { margin-bottom: 8px !important; }
+  .email { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+
+  .perms { display: grid; gap: 14px; margin-top: 16px; }
+  .perm { display: flex; gap: 16px; flex-wrap: wrap; }
+  .perm-name { font-family: var(--mono); font-size: 12px; min-width: 210px; }
+  .perm-name.flagged { color: var(--accent); }
+  .perm-why { font-size: 14.5px; line-height: 1.6; color: var(--text-muted); flex: 1; min-width: 240px; }
+
+  @media (max-width: 560px) {
+    .intro { padding: 56px 0 32px; }
+    .perm-name { min-width: 0; }
+    .perm-why { min-width: 0; }
+  }
+</style>

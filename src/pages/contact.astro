@@ -1,0 +1,142 @@
+---
+import Base from 'layouts/Base.astro';
+import { EMAIL } from 'consts';
+
+const APPS = ['Gallery', 'Recorder', 'Files', 'Something else'];
+const KINDS = ['Feature request', 'Bug report', 'Question'];
+
+// Rendered href already works without JS; the script keeps it in sync with the fields.
+const initialMailto = `mailto:${EMAIL}?subject=${encodeURIComponent(`${KINDS[0]} · ${APPS[0]}`)}&body=`;
+
+const CARDS = [
+  ['What helps', 'The app name, your Android version, and what you expected to happen. One screenshot beats three paragraphs.'],
+  ['What I will not add', 'Ads, accounts, cloud sync, analytics, or a paid tier. Everything else is worth asking for.'],
+  ['Reply time', 'Usually a few days. Every message is read, even when the answer is “not this one”.'],
+];
+---
+
+<Base
+  title="Contact — Simplify my app"
+  description="Feature requests, bug reports and questions for Gallery, Recorder and Files. One person and an inbox — nothing is sent from this page."
+>
+  <main class="shell">
+    <section class="intro">
+      <div class="kicker">Contact · Feature requests</div>
+      <h1 class="page-h1">Tell me what is missing.</h1>
+      <p class="lede">There is no support desk here — it is one person and an inbox. Small, clear requests get read, and the useful ones get built. Bugs go to the front of the queue.</p>
+    </section>
+
+    <section class="columns">
+      <div>
+        <h2 class="kicker">Write a message</h2>
+        <div class="fields">
+          <label>
+            <span>Which app</span>
+            <select id="app">{APPS.map((a) => <option value={a}>{a}</option>)}</select>
+          </label>
+          <label>
+            <span>What kind of message</span>
+            <select id="kind">{KINDS.map((k) => <option value={k}>{k}</option>)}</select>
+          </label>
+          <label>
+            <span>Your message</span>
+            <textarea id="body" rows="7" placeholder="What should the app do that it does not do yet?"></textarea>
+          </label>
+          <div class="actions">
+            <a id="send" href={initialMailto} class="btn btn-accent">Send by email</a>
+            <button id="copy" type="button" class="btn btn-quiet" data-email={EMAIL}>Copy address</button>
+          </div>
+          <div class="fine">Opens your own mail app with the message filled in. Nothing is sent from this page and nothing is stored here.</div>
+        </div>
+      </div>
+
+      <aside class="cards">
+        <div class="card">
+          <div class="kicker">Email</div>
+          <a href={`mailto:${EMAIL}`} class="email">{EMAIL}</a>
+        </div>
+        {CARDS.map(([title, text]) => (
+          <div class="card">
+            <div class="kicker">{title}</div>
+            <div class="card-body">{text}</div>
+          </div>
+        ))}
+      </aside>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .intro { padding: 80px 0 44px; }
+  .intro .kicker { display: block; margin-bottom: 22px; }
+  .page-h1 { max-width: 17ch; }
+  .lede { max-width: 58ch; }
+
+  .columns {
+    padding: 0 0 90px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 48px;
+    align-items: start;
+  }
+  .columns h2 { margin: 0 0 18px; }
+
+  .fields { display: grid; gap: 14px; }
+  label { display: grid; gap: 7px; }
+  label > span { font-size: 14px; font-weight: 500; }
+
+  select, textarea {
+    border-radius: var(--r-control);
+    background: var(--surface-alt);
+    color: var(--text);
+    border: 1px solid var(--hairline);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  select { height: 44px; padding: 0 12px; }
+  textarea { padding: 12px; line-height: 1.6; resize: vertical; }
+
+  .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .fine { font-family: var(--mono); font-size: 11.5px; line-height: 1.7; color: var(--text-faint); }
+
+  .cards {
+    display: grid;
+    gap: 1px;
+    background: var(--hairline);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    overflow: hidden;
+  }
+  .card { background: var(--bg); padding: 24px; }
+  .card .kicker { display: block; margin-bottom: 10px; }
+  .card-body { font-size: 14.5px; line-height: 1.65; color: var(--text-muted); }
+  .email { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+
+  @media (max-width: 560px) {
+    .intro { padding: 56px 0 36px; }
+    .columns { gap: 36px; }
+  }
+</style>
+
+<script>
+  const email = (document.getElementById('copy') as HTMLElement).dataset.email!;
+  const app = document.getElementById('app') as HTMLSelectElement;
+  const kind = document.getElementById('kind') as HTMLSelectElement;
+  const body = document.getElementById('body') as HTMLTextAreaElement;
+  const send = document.getElementById('send') as HTMLAnchorElement;
+  const copy = document.getElementById('copy') as HTMLButtonElement;
+
+  const compose = () => {
+    const subject = encodeURIComponent(`${kind.value} · ${app.value}`);
+    send.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body.value)}`;
+  };
+
+  for (const el of [app, kind, body]) el.addEventListener('input', compose);
+  compose();
+
+  copy.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(email); } catch {}
+    copy.textContent = 'Copied';
+    setTimeout(() => { copy.textContent = 'Copy address'; }, 1600);
+  });
+</script>

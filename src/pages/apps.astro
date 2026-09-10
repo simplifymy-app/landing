@@ -1,0 +1,186 @@
+---
+import { Image } from 'astro:assets';
+import Base from 'layouts/Base.astro';
+
+import galleryNoInternet from 'assets/gallery-no-internet.png';
+import galleryFolders from 'assets/gallery-folders.png';
+import galleryFullscreen from 'assets/gallery-fullscreen.png';
+import galleryMakeItYours from 'assets/gallery-make-it-yours.png';
+import recorderLibrary from 'assets/recorder-library.png';
+import recorderRecording from 'assets/recorder-recording.png';
+import recorderEditor from 'assets/recorder-editor.png';
+import recorderSettings from 'assets/recorder-settings.png';
+
+const APPS = [
+  {
+    name: 'Gallery',
+    available: true,
+    meta: 'Photos & video · Android · under 5 MB',
+    description:
+      'A photo and video album that reads the pictures already on your phone, lays them out in the real folders they live in, and gets out of the way. The part most gallery apps cannot claim: it does not request the internet permission at all, so it cannot upload a photo, load an ad or phone home — not by promise, by construction. Check the permission list before you trust me.',
+    features: [
+      'Folder view that mirrors your phone',
+      'Group by day or month, five sort keys',
+      'Full-screen viewer, pinch zoom, video',
+      'Details: size, dimensions, camera, EXIF',
+      'Favourites, multi-select, hide folders',
+      'Light, dark and pure black themes',
+      'Five accents, custom colour, six app icons',
+      '2–5 columns, radius, text size, contrast',
+    ],
+    shots: [
+      { src: galleryNoInternet, alt: 'Gallery — no internet permission' },
+      { src: galleryFolders, alt: 'Gallery — folders' },
+      { src: galleryFullscreen, alt: 'Gallery — fullscreen viewer' },
+      { src: galleryMakeItYours, alt: 'Gallery — make it yours' },
+    ],
+  },
+  {
+    name: 'Recorder',
+    available: false,
+    meta: 'Audio · Android',
+    description:
+      "A voice recorder that shows you the sound. Record with a live waveform and a running clock, drop a mark at the moment something matters, then trim, cut and fade afterwards without ever overwriting the original. Recordings are files on your phone in WAV, M4A or OPUS — not entries in someone's cloud.",
+    features: [
+      'Live waveform, dB meter, mono clock',
+      'Marks while recording, 1× / 4× / 16× zoom',
+      'Cut, split, fade — undoable until you save',
+      'Record straight into a selection',
+      'Playback 0.25× to 2×, −15s / +15s',
+      'Optional projects, starred takes, search',
+      'WAV / M4A / OPUS, voice to studio quality',
+      'Same themes, accents and app icons',
+    ],
+    shots: [
+      { src: recorderLibrary, alt: 'Recorder — library' },
+      { src: recorderRecording, alt: 'Recorder — recording' },
+      { src: recorderEditor, alt: 'Recorder — editor' },
+      { src: recorderSettings, alt: 'Recorder — settings' },
+    ],
+    caption: 'Screens from the current build in progress.',
+  },
+  {
+    name: 'Files',
+    available: false,
+    meta: 'File manager · Android',
+    description:
+      'A two-pane file manager, the way they used to be. Two folders open at once: mark what you want in the active pane, and copy or move goes into the other one. Portrait swipes between the panes; landscape shows both side by side. No file browser wants to be a homepage, so this one is a list, a footer and five buttons.',
+    features: [
+      'Copy, move, rename, delete, new folder',
+      'Undo on the last operation',
+      'Internal storage and SD card',
+      'Filter, sort, folders-first, hidden files',
+      'Comfortable or compact rows, kB or KiB',
+      'Free space shown per pane',
+    ],
+    shots: [],
+  },
+];
+---
+
+<Base
+  title="Apps — Simplify my app"
+  description="Gallery, Recorder and Files. Free Android apps with no ads, no accounts and no tracking. Gallery is available; Recorder and Files are in development."
+>
+  <main class="shell">
+    <section class="intro">
+      <div class="kicker">Apps · 03</div>
+      <h1 class="page-h1">Three apps I use every day.</h1>
+      <p class="lede">Android. Free. No ads, no accounts, no tracking, no in-app purchases — in all of them, not just the first one. Gallery is out; Recorder and Files are in development.</p>
+    </section>
+
+    {APPS.map((app) => (
+      <section class="app">
+        <div class="head">
+          <h2>{app.name}</h2>
+          <span class:list={['badge', app.available ? 'available' : 'dev']}>
+            {app.available ? 'Available' : 'In development'}
+          </span>
+          <span class="meta">{app.meta}</span>
+        </div>
+        <p class="desc">{app.description}</p>
+        <ul class="features">
+          {app.features.map((f) => <li>{f}</li>)}
+        </ul>
+        {app.shots.length > 0 && (
+          <div class="shots">
+            {app.shots.map(({ src, alt }) => (
+              <Image src={src} alt={alt} width={416} densities={[1]} loading="lazy" />
+            ))}
+          </div>
+        )}
+        {app.caption && <div class="caption">{app.caption}</div>}
+        {app.name === 'Files' && (
+          <div class="ask">
+            <div class="ask-copy">Screens are drawn, the build is next.<br />Tell me what a file manager must have and it goes in before release.</div>
+            <a href="/contact" class="btn btn-accent">Request a feature</a>
+          </div>
+        )}
+      </section>
+    ))}
+  </main>
+</Base>
+
+<style>
+  .intro { padding: 80px 0 48px; }
+  .intro .kicker { display: block; margin-bottom: 22px; }
+  .page-h1 { max-width: 16ch; }
+  .lede { max-width: 56ch; }
+
+  .app { padding: 40px 0; border-top: 1px solid var(--hairline); }
+  .app:last-child { padding-bottom: 80px; }
+
+  .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h2 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; }
+  .badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border-radius: var(--r-control);
+  }
+  .available { color: var(--on-accent); background: var(--accent); padding: 4px 8px; }
+  .dev { color: var(--accent); border: 1px solid var(--accent); padding: 3px 8px; }
+  .meta { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); }
+
+  .desc { margin: 18px 0 0; font-size: 16px; line-height: 1.65; color: var(--text-muted); max-width: 62ch; }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 12px 34px;
+    margin: 26px 0 30px;
+    max-width: 860px;
+    padding: 0;
+    list-style: none;
+  }
+  .features li { font-size: 14.5px; line-height: 1.55; }
+
+  .shots { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+  .shots :global(img) {
+    width: 208px;
+    height: auto;
+    flex: none;
+    border-radius: var(--r-card);
+    border: 1px solid var(--hairline);
+  }
+  .caption { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 12px; }
+
+  .ask {
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    padding: 22px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ask-copy { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--text-muted); }
+
+  @media (max-width: 560px) {
+    .intro { padding: 56px 0 40px; }
+    h2 { font-size: 28px; }
+    .features { grid-template-columns: 1fr; }
+  }
+</style>
