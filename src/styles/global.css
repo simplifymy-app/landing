@@ -63,6 +63,8 @@
 
 html, body { margin: 0; padding: 0; background: var(--bg); }
 
+html { scroll-behavior: smooth; }
+
 body {
   color: var(--text);
   font-family: var(--sans);
@@ -191,6 +193,8 @@ img { display: block; max-width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
   *, *::before, *::after {
     animation: none !important;
     transition-duration: 0ms !important;
