@@ -2,14 +2,41 @@
 import { Image } from 'astro:assets';
 import Base from 'layouts/Base.astro';
 
-import galleryNoInternet from 'assets/gallery-no-internet.png';
 import galleryFolders from 'assets/gallery-folders.png';
+import galleryFoldersLight from 'assets/gallery-folders-light.png';
+import galleryGrid from 'assets/gallery-grid.png';
+import galleryGridLight from 'assets/gallery-grid-light.png';
 import galleryFullscreen from 'assets/gallery-fullscreen.png';
+import galleryFullscreenLight from 'assets/gallery-fullscreen-light.png';
 import galleryMakeItYours from 'assets/gallery-make-it-yours.png';
+import galleryMakeItYoursLight from 'assets/gallery-make-it-yours-light.png';
+
+import playerLibrary from 'assets/player-library.png';
+import playerLibraryLight from 'assets/player-library-light.png';
+import playerAlbums from 'assets/player-albums.png';
+import playerAlbumsLight from 'assets/player-albums-light.png';
+import playerNowPlaying from 'assets/player-now-playing.png';
+import playerNowPlayingLight from 'assets/player-now-playing-light.png';
+import playerMakeItYours from 'assets/player-make-it-yours.png';
+import playerMakeItYoursLight from 'assets/player-make-it-yours-light.png';
+
 import recorderLibrary from 'assets/recorder-library.png';
-import recorderRecording from 'assets/recorder-recording.png';
+import recorderLibraryLight from 'assets/recorder-library-light.png';
+import recorderProject from 'assets/recorder-project.png';
+import recorderProjectLight from 'assets/recorder-project-light.png';
 import recorderEditor from 'assets/recorder-editor.png';
+import recorderEditorLight from 'assets/recorder-editor-light.png';
 import recorderSettings from 'assets/recorder-settings.png';
+import recorderSettingsLight from 'assets/recorder-settings-light.png';
+
+import filesRoot from 'assets/files-root.png';
+import filesRootLight from 'assets/files-root-light.png';
+import filesFolder from 'assets/files-folder.png';
+import filesFolderLight from 'assets/files-folder-light.png';
+import filesMarked from 'assets/files-marked.png';
+import filesMarkedLight from 'assets/files-marked-light.png';
+import filesSettings from 'assets/files-settings.png';
+import filesSettingsLight from 'assets/files-settings-light.png';
 
 const APPS = [
   {
@@ -29,11 +56,35 @@ const APPS = [
       '2–5 columns, radius, text size, contrast',
     ],
     shots: [
-      { src: galleryNoInternet, alt: 'Gallery — no internet permission' },
-      { src: galleryFolders, alt: 'Gallery — folders' },
-      { src: galleryFullscreen, alt: 'Gallery — fullscreen viewer' },
-      { src: galleryMakeItYours, alt: 'Gallery — make it yours' },
+      { dark: galleryFolders, light: galleryFoldersLight, alt: 'Gallery — folders' },
+      { dark: galleryGrid, light: galleryGridLight, alt: 'Gallery — a folder by day' },
+      { dark: galleryFullscreen, light: galleryFullscreenLight, alt: 'Gallery — fullscreen viewer' },
+      { dark: galleryMakeItYours, light: galleryMakeItYoursLight, alt: 'Gallery — make it yours' },
     ],
+  },
+  {
+    name: 'Player',
+    available: false,
+    meta: 'Music · Android · under 5 MB',
+    description:
+      'A music player for the files already on your phone. It reads them where they sit, plays them in the background with a real notification, lock-screen controls and headset keys, and stops there — no catalogue to browse, no account, no recommendations. Like Gallery, it does not request the internet permission, so the music cannot go anywhere.',
+    features: [
+      'Tracks, albums, artists and playlists',
+      'Background playback, lock screen, headset keys',
+      'Queue: play next, add, reorder, shuffle',
+      'Swipe the cover to change track, down to close',
+      'Favourites, playlists, optional play history',
+      'Sleep timer and synced .lrc lyrics',
+      'Hide folders you do not want in the library',
+      'Same themes, accents and app icons',
+    ],
+    shots: [
+      { dark: playerLibrary, light: playerLibraryLight, alt: 'Player — library' },
+      { dark: playerAlbums, light: playerAlbumsLight, alt: 'Player — albums' },
+      { dark: playerNowPlaying, light: playerNowPlayingLight, alt: 'Player — now playing' },
+      { dark: playerMakeItYours, light: playerMakeItYoursLight, alt: 'Player — make it yours' },
+    ],
+    caption: 'Screens from the current build in progress.',
   },
   {
     name: 'Recorder',
@@ -52,10 +103,10 @@ const APPS = [
       'Same themes, accents and app icons',
     ],
     shots: [
-      { src: recorderLibrary, alt: 'Recorder — library' },
-      { src: recorderRecording, alt: 'Recorder — recording' },
-      { src: recorderEditor, alt: 'Recorder — editor' },
-      { src: recorderSettings, alt: 'Recorder — settings' },
+      { dark: recorderLibrary, light: recorderLibraryLight, alt: 'Recorder — library' },
+      { dark: recorderProject, light: recorderProjectLight, alt: 'Recorder — a project' },
+      { dark: recorderEditor, light: recorderEditorLight, alt: 'Recorder — editor' },
+      { dark: recorderSettings, light: recorderSettingsLight, alt: 'Recorder — settings' },
     ],
     caption: 'Screens from the current build in progress.',
   },
@@ -73,20 +124,26 @@ const APPS = [
       'Comfortable or compact rows, kB or KiB',
       'Free space shown per pane',
     ],
-    shots: [],
+    shots: [
+      { dark: filesRoot, light: filesRootLight, alt: 'Files — internal storage' },
+      { dark: filesFolder, light: filesFolderLight, alt: 'Files — a folder' },
+      { dark: filesMarked, light: filesMarkedLight, alt: 'Files — marked for copy' },
+      { dark: filesSettings, light: filesSettingsLight, alt: 'Files — settings' },
+    ],
+    caption: 'Screens from the current build in progress.',
   },
 ];
 ---
 
 <Base
   title="Apps — Simplify my app"
-  description="Gallery, Recorder and Files. Free Android apps with no ads, no accounts and no tracking. Gallery is available; Recorder and Files are in development."
+  description="Gallery, Player, Recorder and Files. Free Android apps with no ads, no accounts and no tracking. Gallery is available; the rest are in development."
 >
   <main class="shell">
     <section class="intro">
-      <div class="kicker">Apps · 03</div>
-      <h1 class="page-h1">Three apps I use every day.</h1>
-      <p class="lede">Android. Free. No ads, no accounts, no tracking, no in-app purchases — in all of them, not just the first one. Gallery is out; Recorder and Files are in development.</p>
+      <div class="kicker">Apps · 04</div>
+      <h1 class="page-h1">Four apps I use every day.</h1>
+      <p class="lede">Android. Free. No ads, no accounts, no tracking, no in-app purchases — in all of them, not just the first one. Gallery is out; Player, Recorder and Files are in development.</p>
     </section>
 
     {APPS.map((app) => (
@@ -104,15 +161,18 @@ const APPS = [
         </ul>
         {app.shots.length > 0 && (
           <div class="shots">
-            {app.shots.map(({ src, alt }) => (
-              <Image src={src} alt={alt} width={416} densities={[1]} loading="lazy" />
+            {app.shots.map(({ dark, light, alt }) => (
+              <>
+                <Image src={dark} alt={alt} width={416} densities={[1]} loading="lazy" class={light ? 'shot-dark has-light' : 'shot-dark'} />
+                {light && <Image src={light} alt={alt} width={416} densities={[1]} loading="lazy" class="shot-light" />}
+              </>
             ))}
           </div>
         )}
         {app.caption && <div class="caption">{app.caption}</div>}
         {app.name === 'Files' && (
           <div class="ask">
-            <div class="ask-copy">Screens are drawn, the build is next.<br />Tell me what a file manager must have and it goes in before release.</div>
+            <div class="ask-copy">The build runs; the polish is next.<br />Tell me what a file manager must have and it goes in before release.</div>
             <a href="/contact" class="btn btn-accent">Request a feature</a>
           </div>
         )}
@@ -164,6 +224,10 @@ const APPS = [
     border-radius: var(--r-card);
     border: 1px solid var(--hairline);
   }
+  /* A shot pairs a dark and a light capture; the site's theme picks which one is shown. */
+  .shots :global(.shot-light) { display: none; }
+  :global([data-theme='light']) .shots :global(.shot-light) { display: block; }
+  :global([data-theme='light']) .shots :global(.has-light) { display: none; }
   .caption { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 12px; }
 
   .ask {

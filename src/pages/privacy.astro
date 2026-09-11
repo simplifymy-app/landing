@@ -5,15 +5,16 @@ import { EMAIL, UPDATED_ON } from 'consts';
 const SECTIONS = [
   ['Data we collect', 'None. We collect no personal data, no sensitive user data and no device data. No name, no email, no phone number, no contacts, no location, no advertising identifier, no device identifier, no installed-app list, no usage or diagnostic data. The apps have no user accounts and no server of our own to send anything to.'],
   ['Data we share', 'None. Since nothing is collected, nothing is shared, sold or transferred to any third party, and there are no third-party SDKs for advertising, attribution or analytics inside the apps.'],
-  ['Your content stays on your device', 'Photos, videos, recordings and files are read and written on your device only. Nothing is uploaded, backed up or copied anywhere by us. Settings are saved locally and are removed when you uninstall the app. Gallery does not request the internet permission at all, so it is technically unable to send anything anywhere.'],
+  ['Your content stays on your device', 'Photos, videos, music, recordings and files are read and written on your device only. Nothing is uploaded, backed up or copied anywhere by us. Settings are saved locally and are removed when you uninstall the app. Gallery does not request the internet permission at all, so it is technically unable to send anything anywhere.'],
 ];
 
 const PERMISSIONS = [
   ['READ_MEDIA_IMAGES / VIDEO', 'To show the photos and videos already on your phone. They are read for display only.', false],
   ['ACCESS_MEDIA_LOCATION', "Lets the details panel read a photo's own EXIF. Location is never stored by us and never transmitted.", false],
+  ['READ_MEDIA_AUDIO', 'Player only. To list and play the music already on your phone. Files are read for playback only.', false],
   ['RECORD_AUDIO', 'Recorder only. Audio is written to a file on your device and stays there.', false],
   ['Storage access', 'Files only. Needed to list, copy, move, rename and delete the files you choose to act on.', false],
-  ['INTERNET — not requested', "Gallery ships without it. You can verify this in the app's permission list on Google Play.", true],
+  ['INTERNET — not requested', "Gallery and Player ship without it. You can verify this in the app's permission list on Google Play.", true],
 ];
 
 const REST = [
@@ -33,7 +34,7 @@ const REST = [
     <section class="intro">
       <div class="kicker">Privacy policy · Last updated {UPDATED_ON}</div>
       <h1 class="page-h1">We do not collect any data.</h1>
-      <p class="lede">This policy covers every app published by Simplify my app — Gallery, Recorder and Files — and this website. It is short because there is almost nothing to describe.</p>
+      <p class="lede">This policy covers every app published by Simplify my app — Gallery, Player, Recorder and Files — and this website. It is short because there is almost nothing to describe.</p>
     </section>
 
     <section class="summary-wrap">
