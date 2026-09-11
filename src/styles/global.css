@@ -58,6 +58,7 @@ body {
   color: var(--text);
   font-family: var(--sans);
   min-height: 100vh;
+  min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
   transition: background var(--t-theme) var(--enter), color var(--t-theme) var(--enter);
 }
@@ -82,7 +83,13 @@ img { display: block; max-width: 100%; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Shared layout + type primitives, used by every page. */
-.shell { max-width: var(--shell); margin: 0 auto; padding: 0 var(--gutter); }
+.shell {
+  max-width: var(--shell);
+  margin: 0 auto;
+  /* max() keeps the gutter clear of the notch/rounded corners in landscape. */
+  padding-left: max(var(--gutter), env(safe-area-inset-left));
+  padding-right: max(var(--gutter), env(safe-area-inset-right));
+}
 
 .kicker {
   font-family: var(--mono);
