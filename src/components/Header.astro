@@ -71,24 +71,29 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   #theme-toggle:hover { color: var(--text); }
   .dot { width: 10px; height: 10px; border-radius: 5px; background: var(--accent); display: block; }
 
+  /* The bar wraps to two rows here, so it is trimmed to stay a thin sticky strip. */
   @media (max-width: 720px) {
-    header { position: static; }
-    .bar { gap: 12px; flex-wrap: wrap; height: auto; padding-block: 12px; }
+    .bar { gap: 8px; flex-wrap: wrap; height: auto; padding-block: 10px; }
     nav { order: 3; width: 100%; gap: 18px; }
+    nav a { padding: 4px 0; }
   }
 </style>
 
 <script>
-  const btn = document.getElementById('theme-toggle')!;
-  const label = btn.querySelector('[data-theme-label]')!;
-  const sync = () => {
-    label.textContent = document.documentElement.dataset.theme === 'light' ? 'LIGHT' : 'DARK';
-  };
-  btn.addEventListener('click', () => {
-    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-    document.documentElement.dataset.theme = next;
-    try { localStorage.setItem('simplify-site-theme', next); } catch {}
+  // astro:page-load fires on the first load and after every router swap, which replaces
+  // the button this binds to. The module itself only ever runs once.
+  document.addEventListener('astro:page-load', () => {
+    const btn = document.getElementById('theme-toggle')!;
+    const label = btn.querySelector('[data-theme-label]')!;
+    const sync = () => {
+      label.textContent = document.documentElement.dataset.theme === 'light' ? 'LIGHT' : 'DARK';
+    };
+    btn.addEventListener('click', () => {
+      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+      document.documentElement.dataset.theme = next;
+      try { localStorage.setItem('simplify-site-theme', next); } catch {}
+      sync();
+    });
     sync();
   });
-  sync();
 </script>

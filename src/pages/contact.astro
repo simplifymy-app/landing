@@ -119,24 +119,28 @@ const CARDS = [
 </style>
 
 <script>
-  const email = (document.getElementById('copy') as HTMLElement).dataset.email!;
-  const app = document.getElementById('app') as HTMLSelectElement;
-  const kind = document.getElementById('kind') as HTMLSelectElement;
-  const body = document.getElementById('body') as HTMLTextAreaElement;
-  const send = document.getElementById('send') as HTMLAnchorElement;
-  const copy = document.getElementById('copy') as HTMLButtonElement;
+  // astro:page-load fires on the first load and after every router swap, which replaces
+  // the elements this binds to. The module itself only ever runs once.
+  document.addEventListener('astro:page-load', () => {
+    const email = (document.getElementById('copy') as HTMLElement).dataset.email!;
+    const app = document.getElementById('app') as HTMLSelectElement;
+    const kind = document.getElementById('kind') as HTMLSelectElement;
+    const body = document.getElementById('body') as HTMLTextAreaElement;
+    const send = document.getElementById('send') as HTMLAnchorElement;
+    const copy = document.getElementById('copy') as HTMLButtonElement;
 
-  const compose = () => {
-    const subject = encodeURIComponent(`${kind.value} · ${app.value}`);
-    send.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body.value)}`;
-  };
+    const compose = () => {
+      const subject = encodeURIComponent(`${kind.value} · ${app.value}`);
+      send.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body.value)}`;
+    };
 
-  for (const el of [app, kind, body]) el.addEventListener('input', compose);
-  compose();
+    for (const el of [app, kind, body]) el.addEventListener('input', compose);
+    compose();
 
-  copy.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(email); } catch {}
-    copy.textContent = 'Copied';
-    setTimeout(() => { copy.textContent = 'Copy address'; }, 1600);
+    copy.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(email); } catch {}
+      copy.textContent = 'Copied';
+      setTimeout(() => { copy.textContent = 'Copy address'; }, 1600);
+    });
   });
 </script>

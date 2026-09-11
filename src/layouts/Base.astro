@@ -1,4 +1,6 @@
 ---
+import { ClientRouter } from 'astro:transitions';
+
 import Header from 'components/Header.astro';
 import Footer from 'components/Footer.astro';
 import { SITE } from 'consts';
@@ -26,6 +28,7 @@ const og = new URL('/og.png', Astro.site);
     <meta property="og:url" content={canonical} />
     <meta property="og:image" content={og} />
     <meta name="twitter:card" content="summary_large_image" />
+    <ClientRouter />
     <script is:inline>
       // Blocking: sets the theme before first paint so tokens never flash.
       (() => {
@@ -35,6 +38,12 @@ const og = new URL('/og.png', Astro.site);
           t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
         }
         document.documentElement.dataset.theme = t;
+
+        // The router replaces the <html> attributes wholesale on navigation, and this
+        // script does not re-run, so hand the current theme to the incoming document.
+        document.addEventListener('astro:before-swap', (e) => {
+          e.newDocument.documentElement.dataset.theme = document.documentElement.dataset.theme;
+        });
       })();
     </script>
   </head>

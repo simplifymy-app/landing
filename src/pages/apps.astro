@@ -147,7 +147,7 @@ const APPS = [
     </section>
 
     {APPS.map((app) => (
-      <section class="app">
+      <section class="app" id={app.name.toLowerCase()}>
         <div class="head">
           <h2>{app.name}</h2>
           <span class:list={['badge', app.available ? 'available' : 'dev']}>
@@ -187,21 +187,36 @@ const APPS = [
   .page-h1 { max-width: 16ch; }
   .lede { max-width: 56ch; }
 
-  .app { padding: 40px 0; border-top: 1px solid var(--hairline); }
+  /* scroll-margin clears the sticky header when the home page links straight to an app. */
+  .app { padding: 40px 0; border-top: 1px solid var(--hairline); scroll-margin-top: 84px; }
   .app:last-child { padding-bottom: 80px; }
 
-  .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
-  h2 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; }
+  .head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  h2 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; }
+  /* Badge and meta share one height and one centre line, so they sit level with the name. */
   .badge {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
     font-family: var(--mono);
     font-size: 11px;
+    line-height: 1;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     border-radius: var(--r-control);
   }
-  .available { color: var(--on-accent); background: var(--accent); padding: 4px 8px; }
-  .dev { color: var(--accent); border: 1px solid var(--accent); padding: 3px 8px; }
-  .meta { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); }
+  .available { color: var(--on-accent); background: var(--accent); }
+  .dev { color: var(--accent); border: 1px solid var(--accent); }
+  .meta {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1;
+    color: var(--text-faint);
+  }
 
   .desc { margin: 18px 0 0; font-size: 16px; line-height: 1.65; color: var(--text-muted); max-width: 62ch; }
 
@@ -231,6 +246,7 @@ const APPS = [
   .caption { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 12px; }
 
   .ask {
+    margin-top: 30px;
     border: 1px solid var(--hairline);
     border-radius: var(--r-card);
     padding: 22px;
@@ -241,6 +257,11 @@ const APPS = [
     justify-content: space-between;
   }
   .ask-copy { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--text-muted); }
+
+  /* The header wraps to two rows below 720px, so the anchor clears a taller bar. */
+  @media (max-width: 720px) {
+    .app { scroll-margin-top: 110px; }
+  }
 
   @media (max-width: 560px) {
     .intro { padding: 56px 0 40px; }

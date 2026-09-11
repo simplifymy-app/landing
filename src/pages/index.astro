@@ -60,7 +60,7 @@ const IDEA = [
       </div>
       <div class="apps">
         {APPS.map(({ name, blurb, status, live }) => (
-          <a href="/apps" class="app-row">
+          <a href={`/apps#${name.toLowerCase()}`} class="app-row">
             <span class="app-name">{name}</span>
             <span class="app-blurb">{blurb}</span>
             <span class:list={['app-status', { dev: !live }]}>{status}</span>

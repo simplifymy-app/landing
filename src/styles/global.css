@@ -138,9 +138,23 @@ img { display: block; max-width: 100%; }
   .page-h1 { font-size: 34px; }
 }
 
+/* The router's page crossfade, tuned to the same timing as everything else here. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--t-enter);
+  animation-timing-function: var(--enter);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation: none !important;
     transition-duration: 0ms !important;
+  }
+
+  /* The selector above cannot reach the transition pseudo-elements; cut them separately. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
   }
 }
