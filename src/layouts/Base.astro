@@ -1,33 +1,129 @@
 ---
 import { ClientRouter } from 'astro:transitions';
+import { SEO } from 'astro-seo';
 
 import Header from 'components/Header.astro';
 import Footer from 'components/Footer.astro';
-import { SITE } from 'consts';
+import { LANG, LOCALE, SITE } from 'consts';
+import { PAGES, ogImagePath, type PageKey } from '../lib/pages';
+import { buildSchema, type SchemaOptions } from '../lib/schema';
 import 'styles/global.css';
 
-interface Props { title: string; description: string }
-const { title, description } = Astro.props;
-const canonical = new URL(Astro.url.pathname, Astro.site);
-const og = new URL('/og.png', Astro.site);
+// As a URL so the preload matches the content-hashed file the stylesheet requests;
+// a hand-written /_astro/ path would 404 on the next build.
+import headingFont from '@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url';
+
+interface Props {
+  /** Without the brand; the brand is appended by the template. */
+  title: string;
+  description: string;
+  /** Selects the generated Open Graph card. Omit for unlisted routes. */
+  page?: PageKey;
+  noindex?: boolean;
+  trail?: SchemaOptions['trail'];
+  pageType?: SchemaOptions['pageType'];
+  apps?: boolean;
+  faq?: boolean;
+}
+
+const {
+  title,
+  description,
+  page,
+  noindex = false,
+  trail,
+  pageType,
+  apps = false,
+  faq = false,
+} = Astro.props;
+
+// Matches trailingSlash: 'always', so the canonical and the sitemap entry are one string.
+const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const canonical = new URL(path, Astro.site).href;
+
+const ogImage = new URL(page ? ogImagePath(page) : '/og.png', Astro.site).href;
+const fullTitle = `${title} — ${SITE}`;
+
+const schema = noindex
+  ? null
+  : buildSchema({
+      path: page ? PAGES[page].path : path,
+      title: fullTitle,
+      description,
+      trail,
+      pageType,
+      apps,
+      faq,
+      image: ogImage,
+    });
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={LANG}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
-    <link rel="canonical" href={canonical} />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={SITE} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonical} />
-    <meta property="og:image" content={og} />
-    <meta name="twitter:card" content="summary_large_image" />
+
+    <SEO
+      title={fullTitle}
+      description={description}
+      canonical={canonical}
+      noindex={noindex}
+      nofollow={noindex}
+      robotsExtras={
+        noindex
+          ? undefined
+          : 'max-snippet:-1, max-image-preview:large, max-video-preview:-1'
+      }
+      openGraph={{
+        basic: { title: fullTitle, type: 'website', image: ogImage, url: canonical },
+        optional: { siteName: SITE, description, locale: LOCALE },
+        image: {
+          url: ogImage,
+          type: 'image/png',
+          width: 1200,
+          height: 630,
+          alt: `${title} — ${SITE}`,
+        },
+      }}
+      twitter={{
+        card: 'summary_large_image',
+        title: fullTitle,
+        description,
+        image: ogImage,
+        imageAlt: `${title} — ${SITE}`,
+      }}
+      extend={{
+        meta: [
+          { name: 'author', content: SITE },
+          { name: 'application-name', content: SITE },
+          { name: 'apple-mobile-web-app-title', content: SITE },
+          { name: 'theme-color', content: '#0B0B0C' },
+        ],
+        link: [
+          { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
+          { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
+          { rel: 'manifest', href: '/site.webmanifest' },
+          // The heading face is almost always the LCP element.
+          {
+            rel: 'preload',
+            as: 'font',
+            type: 'font/woff2',
+            crossorigin: 'anonymous',
+            href: headingFont,
+          },
+        ],
+      }}
+    />
+
+    {schema && (
+      <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(schema)}
+      />
+    )}
+
     <ClientRouter />
     <script is:inline>
       // Blocking: sets the theme before first paint so tokens never flash.

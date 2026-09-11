@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from 'layouts/Base.astro';
+import { APPS as REGISTRY, playUrl } from 'consts';
 
 import galleryFolders from 'assets/gallery-folders.png';
 import galleryFoldersLight from 'assets/gallery-folders-light.png';
@@ -58,10 +59,10 @@ const APPS = [
       '2–5 columns, radius, text size, contrast',
     ],
     shots: [
-      { dark: galleryFolders, light: galleryFoldersLight, alt: 'Gallery — folders' },
-      { dark: galleryGrid, light: galleryGridLight, alt: 'Gallery — a folder by day' },
-      { dark: galleryEdit, light: galleryEditLight, alt: 'Gallery — crop and rotate' },
-      { dark: galleryMakeItYours, light: galleryMakeItYoursLight, alt: 'Gallery — make it yours' },
+      { dark: galleryFolders, light: galleryFoldersLight, alt: 'Gallery for Android showing photo folders as they exist on the phone' },
+      { dark: galleryGrid, light: galleryGridLight, alt: 'Gallery for Android showing one folder grouped by day' },
+      { dark: galleryEdit, light: galleryEditLight, alt: 'Gallery for Android crop and rotate editor' },
+      { dark: galleryMakeItYours, light: galleryMakeItYoursLight, alt: 'Gallery for Android theme, accent and layout settings' },
     ],
   },
   {
@@ -83,10 +84,10 @@ const APPS = [
       'Same themes, accents and app icons',
     ],
     shots: [
-      { dark: playerLibrary, light: playerLibraryLight, alt: 'Player — library' },
-      { dark: playerAlbums, light: playerAlbumsLight, alt: 'Player — albums' },
-      { dark: playerNowPlaying, light: playerNowPlayingLight, alt: 'Player — now playing' },
-      { dark: playerMakeItYours, light: playerMakeItYoursLight, alt: 'Player — make it yours' },
+      { dark: playerLibrary, light: playerLibraryLight, alt: 'Player for Android showing the music library read from the phone' },
+      { dark: playerAlbums, light: playerAlbumsLight, alt: 'Player for Android album view' },
+      { dark: playerNowPlaying, light: playerNowPlayingLight, alt: 'Player for Android now playing screen with playback controls' },
+      { dark: playerMakeItYours, light: playerMakeItYoursLight, alt: 'Player for Android appearance settings' },
     ],
     caption: 'Screens from the current build in progress.',
   },
@@ -109,10 +110,10 @@ const APPS = [
       'Same themes, accents and app icons',
     ],
     shots: [
-      { dark: recorderLibrary, light: recorderLibraryLight, alt: 'Recorder — library' },
-      { dark: recorderProject, light: recorderProjectLight, alt: 'Recorder — a project' },
-      { dark: recorderEditor, light: recorderEditorLight, alt: 'Recorder — editor' },
-      { dark: recorderSettings, light: recorderSettingsLight, alt: 'Recorder — settings' },
+      { dark: recorderLibrary, light: recorderLibraryLight, alt: 'Recorder for Android showing saved voice recordings' },
+      { dark: recorderProject, light: recorderProjectLight, alt: 'Recorder for Android recording with a live waveform' },
+      { dark: recorderEditor, light: recorderEditorLight, alt: 'Recorder for Android cut and fade editor' },
+      { dark: recorderSettings, light: recorderSettingsLight, alt: 'Recorder for Android recording quality settings' },
     ],
     caption: 'Screens from the current build in progress.',
   },
@@ -133,19 +134,29 @@ const APPS = [
       'Free space shown per pane',
     ],
     shots: [
-      { dark: filesRoot, light: filesRootLight, alt: 'Files — internal storage' },
-      { dark: filesFolder, light: filesFolderLight, alt: 'Files — a folder' },
-      { dark: filesMarked, light: filesMarkedLight, alt: 'Files — marked for copy' },
-      { dark: filesSettings, light: filesSettingsLight, alt: 'Files — settings' },
+      { dark: filesRoot, light: filesRootLight, alt: 'Files for Android showing internal storage in a two-pane layout' },
+      { dark: filesFolder, light: filesFolderLight, alt: 'Files for Android browsing a folder' },
+      { dark: filesMarked, light: filesMarkedLight, alt: 'Files for Android with files marked for copy' },
+      { dark: filesSettings, light: filesSettingsLight, alt: 'Files for Android settings' },
     ],
     caption: 'Screens from the current build in progress.',
   },
 ];
+
+// Null while an app is still in development.
+const SECTIONS = APPS.map((app) => ({
+  ...app,
+  store: playUrl(REGISTRY.find((a) => a.name === app.name)?.playId ?? null),
+}));
 ---
 
 <Base
-  title="Apps — Simplify my app"
+  page="apps"
+  title="Apps — Gallery, Player, Recorder & Files"
   description="Gallery, Player, Recorder and Files. Free Android apps with no ads, no accounts and no tracking. Gallery is available; the rest are in development."
+  pageType="CollectionPage"
+  trail={[{ name: 'Apps', path: '/apps/' }]}
+  apps
 >
   <main class="shell">
     <section class="intro">
@@ -195,7 +206,7 @@ const APPS = [
       </nav>
     </section>
 
-    {APPS.map((app) => (
+    {SECTIONS.map((app) => (
       <section class="app" id={app.name.toLowerCase()}>
         <div class="head">
           <h2>{app.name}</h2>
@@ -205,6 +216,11 @@ const APPS = [
           <span class="meta">{app.meta}</span>
         </div>
         <p class="desc">{app.description}</p>
+        {app.store && (
+          <a href={app.store} class="btn btn-accent store">
+            Get {app.name} on Google Play
+          </a>
+        )}
         <ul class="features">
           {app.features.map((f) => <li>{f}</li>)}
         </ul>
@@ -213,7 +229,9 @@ const APPS = [
             {app.shots.map(({ dark, light, alt }) => (
               <>
                 <Image src={dark} alt={alt} width={416} densities={[1]} loading="lazy" class={light ? 'shot-dark has-light' : 'shot-dark'} />
-                {light && <Image src={light} alt={alt} width={416} densities={[1]} loading="lazy" class="shot-light" />}
+                {/* Same screen in the light theme; CSS shows one or the other, so this
+                    copy is decorative and must not be announced twice. */}
+                {light && <Image src={light} alt="" width={416} densities={[1]} loading="lazy" class="shot-light" />}
               </>
             ))}
           </div>
@@ -222,7 +240,7 @@ const APPS = [
         {app.name === 'Files' && (
           <div class="ask">
             <div class="ask-copy">The build runs; the polish is next.<br />Tell me what a file manager must have and it goes in before release.</div>
-            <a href="/contact" class="btn btn-accent">Request a feature</a>
+            <a href="/contact/" class="btn btn-accent">Request a feature</a>
           </div>
         )}
       </section>
@@ -367,6 +385,7 @@ const APPS = [
   }
 
   .desc { margin: 18px 0 0; font-size: 16px; line-height: 1.65; color: var(--text-muted); max-width: 62ch; }
+  .store { margin-top: 22px; }
 
   .features {
     display: grid;

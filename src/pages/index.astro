@@ -1,6 +1,9 @@
 ---
 import Base from 'layouts/Base.astro';
 import HeroGraphic from 'components/HeroGraphic.astro';
+import { APPS as REGISTRY, FAQ, playUrl } from 'consts';
+
+const GALLERY_PLAY = playUrl(REGISTRY.find((a) => a.slug === 'gallery')?.playId ?? null);
 
 const APPS = [
   { name: 'Gallery', blurb: 'A photo and video album that reads what is already on your phone. It does not even ask for internet permission.', status: 'On Google Play', live: true },
@@ -18,8 +21,11 @@ const IDEA = [
 ---
 
 <Base
-  title="Simplify my app — free Android apps with no ads, no accounts, no tracking"
+  page="home"
+  title="Free Android apps, no ads, no tracking"
   description="Gallery, Player, Recorder and Files: plain Android apps that are free, collect nothing and upload nothing. No ads, no accounts, no subscriptions."
+  apps
+  faq
 >
   <main>
     <section class="hero-section">
@@ -30,8 +36,11 @@ const IDEA = [
           <p>I got tired of tons of apps that put a banner, a paywall, a sign-in and a “Pro” tier in front of something simple. So I built the plain versions for myself, use them every day — and I give them to everyone else too.</p>
           <p>They are free. There are no ads. Nothing is collected. Nothing is uploaded.</p>
           <div class="ctas">
-            <a href="/apps" class="btn btn-accent">See the apps</a>
-            <a href="/privacy" class="btn btn-quiet">What we collect: nothing</a>
+            {GALLERY_PLAY && (
+              <a href={GALLERY_PLAY} class="btn btn-accent">Get Gallery on Google Play</a>
+            )}
+            <a href="/apps/" class="btn btn-quiet">See all four apps</a>
+            <a href="/privacy/" class="btn btn-quiet">What we collect: nothing</a>
           </div>
           <div class="claims">
             <span>No ads</span><span>·</span><span>No tracking</span><span>·</span><span>No accounts</span><span>·</span><span>Free forever</span>
@@ -56,15 +65,27 @@ const IDEA = [
     <section class="shell block">
       <div class="block-head">
         <h2 class="kicker">The apps · 04</h2>
-        <a href="/apps" class="all">All apps →</a>
+        <a href="/apps/" class="all">All apps →</a>
       </div>
       <div class="apps">
         {APPS.map(({ name, blurb, status, live }) => (
-          <a href={`/apps#${name.toLowerCase()}`} class="app-row">
+          <a href={`/apps/#${name.toLowerCase()}`} class="app-row">
             <span class="app-name">{name}</span>
             <span class="app-blurb">{blurb}</span>
             <span class:list={['app-status', { dev: !live }]}>{status}</span>
           </a>
+        ))}
+      </div>
+    </section>
+
+    <section class="shell block">
+      <h2 class="kicker">Questions people actually ask</h2>
+      <div class="faq">
+        {FAQ.map(({ q, a }) => (
+          <details class="qa">
+            <summary><h3>{q}</h3><span class="mark" aria-hidden="true"></span></summary>
+            <p>{a}</p>
+          </details>
         ))}
       </div>
     </section>
@@ -77,7 +98,7 @@ const IDEA = [
       <div>
         <h2>Missing something?</h2>
         <p>These are the apps I needed. Three of them are still being built, so this is the best moment to ask for something.</p>
-        <a href="/contact" class="btn btn-quiet">Request a feature</a>
+        <a href="/contact/" class="btn btn-quiet">Request a feature</a>
       </div>
     </section>
   </main>
@@ -172,6 +193,49 @@ const IDEA = [
     white-space: nowrap;
   }
   .app-status.dev { color: var(--accent); }
+
+  .faq {
+    border-top: 1px solid var(--hairline);
+  }
+  .qa { border-bottom: 1px solid var(--hairline); }
+  .qa summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px 4px;
+    cursor: pointer;
+    list-style: none;
+  }
+  .qa summary::-webkit-details-marker { display: none; }
+  .qa h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  /* A plus that becomes a minus, drawn from two rules so there is no icon font to load. */
+  .mark { position: relative; width: 11px; height: 11px; flex: none; }
+  .mark::before,
+  .mark::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto;
+    height: 1px;
+    background: var(--text-faint);
+    transition: transform var(--t-state) var(--enter);
+  }
+  .mark::after { transform: rotate(90deg); }
+  .qa[open] .mark::after { transform: rotate(0deg); }
+  .qa[open] summary h3 { color: var(--accent); }
+  .qa p {
+    margin: 0 0 22px;
+    padding-right: 30px;
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--text-muted);
+    max-width: 68ch;
+  }
 
   .closing {
     padding: 64px var(--gutter) 90px;

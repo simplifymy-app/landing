@@ -34,15 +34,16 @@ const CELLS = FOUR.map((_, row) => `${FOUR[row]}.${ZERO[row]}.${FOUR[row]}`)
 
 const LINKS = [
   ['/', 'Home', 'The whole idea, in four lines.'],
-  ['/apps', 'Apps', 'Gallery, Player, Recorder and Files.'],
-  ['/privacy', 'Privacy', 'The short version: nothing is collected.'],
-  ['/contact', 'Contact', 'Tell me what you were looking for.'],
+  ['/apps/', 'Apps', 'Gallery, Player, Recorder and Files.'],
+  ['/privacy/', 'Privacy', 'The short version: nothing is collected.'],
+  ['/contact/', 'Contact', 'Tell me what you were looking for.'],
 ];
 ---
 
 <Base
-  title="Page not found — Simplify my app"
+  title="Page not found"
   description="That page does not exist. The apps, the privacy policy and the inbox all still do."
+  noindex
 >
   <main class="shell">
     <section class="top">
