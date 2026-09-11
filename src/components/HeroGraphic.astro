@@ -1,11 +1,27 @@
 ---
-// Four drifting columns of gradient tiles; each set is duplicated for the loop.
-const COLUMNS = [
-  { anim: 'driftUp 34s', tiles: [['#1F1F22','#17171A'],['#2E6B55','#1E4D3E'],['#5B3F73','#3D2A50'],['#8A7A3A','#5E5327'],['#5A6E9E','#3E4D70']] },
-  { anim: 'driftDown 42s', tiles: [['#3E7A5E','#2B5A45'],['#5E7E96','#3F5A6E'],['#62A882','#3F7A5D'],['#9878C2','#6E559A'],['#DBAE74','#B4864F']] },
-  { anim: 'driftUp 28s', tiles: [['#6E4FA0','#4C3573'],['#D7A83F','#A87F26'],['#C1735C','#93513E'],['#3EA089','#2A7565'],['#74BE8E','#4E9268']] },
-  { anim: 'driftDown 38s', tiles: [['#C2604A','#8E4434'],['#5A72E8','#3F52AE'],['#8FBBD1','#6B93A8'],['#DFA1AE','#B47484'],['#7FB6D8','#5A8AA9']] },
+// The five app accents, each with a deeper stop so a tile reads as a lit surface.
+const PALETTE = [
+  ['#718CFF', '#5A70CC'], // blue
+  ['#DEA858', '#B18646'], // amber
+  ['#61BF8D', '#4D9870'], // green
+  ['#D96B8B', '#AD556F'], // pink
+  ['#AD8DFF', '#8A70CC'], // purple
 ];
+
+/*
+  Four drifting columns of gradient tiles. Each column runs the whole palette, started at
+  a different point in it, so no two neighbours show the same colour side by side; each
+  set is then duplicated for the loop.
+*/
+const COLUMNS = [
+  { anim: 'driftUp 34s', start: 0 },
+  { anim: 'driftDown 42s', start: 2 },
+  { anim: 'driftUp 28s', start: 4 },
+  { anim: 'driftDown 38s', start: 1 },
+].map(({ anim, start }) => ({
+  anim,
+  tiles: PALETTE.map((_, i) => PALETTE[(start + i) % PALETTE.length]),
+}));
 ---
 
 <div class="graphic" aria-hidden="true">
