@@ -42,6 +42,8 @@ const APPS = [
   {
     name: 'Gallery',
     available: true,
+    tint: ['#718CFF', '#5A70CC'],
+    mini: 'grid',
     meta: 'Photos & video · Android · under 5 MB',
     description:
       'A photo and video album that reads the pictures already on your phone, lays them out in the real folders they live in, and gets out of the way. The part most gallery apps cannot claim: it does not request the internet permission at all, so it cannot upload a photo, load an ad or phone home — not by promise, by construction. Check the permission list before you trust me.',
@@ -65,6 +67,8 @@ const APPS = [
   {
     name: 'Player',
     available: false,
+    tint: ['#AD8DFF', '#8A70CC'],
+    mini: 'eq',
     meta: 'Music · Android · under 5 MB',
     description:
       'A music player for the files already on your phone. It reads them where they sit, plays them in the background with a real notification, lock-screen controls and headset keys, and stops there — no catalogue to browse, no account, no recommendations. Like Gallery, it does not request the internet permission, so the music cannot go anywhere.',
@@ -89,6 +93,8 @@ const APPS = [
   {
     name: 'Recorder',
     available: false,
+    tint: ['#DEA858', '#B18646'],
+    mini: 'wave',
     meta: 'Audio · Android',
     description:
       "A voice recorder that shows you the sound. Record with a live waveform and a running clock, drop a mark at the moment something matters, then trim, cut and fade afterwards without ever overwriting the original. Recordings are files on your phone in WAV, M4A or OPUS — not entries in someone's cloud.",
@@ -113,6 +119,8 @@ const APPS = [
   {
     name: 'Files',
     available: false,
+    tint: ['#61BF8D', '#4D9870'],
+    mini: 'panes',
     meta: 'File manager · Android',
     description:
       'A two-pane file manager, the way they used to be. Two folders open at once: mark what you want in the active pane, and copy or move goes into the other one. Portrait swipes between the panes; landscape shows both side by side. No file browser wants to be a homepage, so this one is a list, a footer and five buttons.',
@@ -141,9 +149,50 @@ const APPS = [
 >
   <main class="shell">
     <section class="intro">
-      <div class="kicker">Apps · 04</div>
-      <h1 class="page-h1">Apps I use every day.</h1>
-      <p class="lede">Android. Free. No ads, no accounts, no tracking, no in-app purchases — in all of them, not just the first one. Gallery is out; Player, Recorder and Files are in development.</p>
+      <div class="copy">
+        <div class="kicker">Apps · 04</div>
+        <h1 class="page-h1">Apps I use every day.</h1>
+        <p class="lede">Android. Free. No ads, no accounts, no tracking, no in-app purchases — in all of them, not just the first one. Gallery is out; Player, Recorder and Files are in development.</p>
+      </div>
+
+      <nav class="index" aria-label="Jump to an app">
+        {APPS.map((app, i) => (
+          <a
+            href={`#${app.name.toLowerCase()}`}
+            class:list={['tile-link', { soon: !app.available }]}
+            style={`--from: ${app.tint[0]}; --to: ${app.tint[1]}; --d: ${120 + i * 90}ms;`}
+          >
+            <span class="tile" aria-hidden="true">
+              {app.mini === 'grid' && (
+                <span class="mini grid">
+                  {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => <span class="cell" style={`--i: ${n}`}></span>)}
+                </span>
+              )}
+              {app.mini === 'eq' && (
+                <span class="mini eq">
+                  {[0, 1, 2, 3].map((n) => <span class="bar" style={`--i: ${n}`}></span>)}
+                </span>
+              )}
+              {app.mini === 'wave' && (
+                <span class="mini wave">
+                  {[0, 1, 2, 3, 4, 5, 6].map((n) => <span class="bar" style={`--i: ${Math.abs(n - 3)}`}></span>)}
+                </span>
+              )}
+              {app.mini === 'panes' && (
+                <span class="mini panes">
+                  <span class="pane"></span>
+                  <span class="pane"></span>
+                  <span class="chip"></span>
+                </span>
+              )}
+            </span>
+            <span class="tile-meta">
+              <span class="tile-name">{app.name}</span>
+              <span class="tile-status">{app.available ? 'Available' : 'In development'}</span>
+            </span>
+          </a>
+        ))}
+      </nav>
     </section>
 
     {APPS.map((app) => (
@@ -182,10 +231,109 @@ const APPS = [
 </Base>
 
 <style>
-  .intro { padding: 35px 0 48px; }
+  .intro { padding: 35px 0 44px; }
   .intro .kicker { display: block; margin-bottom: 22px; }
   .page-h1 { max-width: 16ch; }
   .lede { max-width: 56ch; }
+
+  /*
+    The four apps as an index: one tile each, in the app's own colour, running a small
+    loop of the thing that app actually does — a grid of photos lighting up, a meter, a
+    waveform, a file handed from one pane to the other. Each one links to its section.
+  */
+  .index {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 24px;
+  }
+  .tile-link {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: rise var(--t-enter) var(--enter) var(--d) backwards;
+  }
+  .tile {
+    position: relative;
+    width: 64px;
+    flex: none;
+    aspect-ratio: 1;
+    border-radius: var(--r-tile);
+    background: linear-gradient(150deg, var(--from), var(--to));
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    transition: transform var(--t-enter) var(--enter), opacity var(--t-enter) var(--enter);
+  }
+  /*
+    The same two stops lit from the opposite corner. Crossfading to it on hover brightens
+    the tile without moving it off the app's colour — and a gradient cannot be transitioned
+    in place, so it has to be a second layer.
+  */
+  .tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(330deg, var(--from), var(--to));
+    opacity: 0;
+    transition: opacity var(--t-enter) var(--enter);
+  }
+  .tile-link:hover .tile { transform: translateY(-3px); }
+  .tile-link:hover .tile::after { opacity: 1; }
+  /* Three of the four are still being built; the tile says so before the label does. */
+  .tile-link.soon .tile { opacity: 0.72; }
+  .tile-link.soon:hover .tile { opacity: 1; }
+
+  .tile-meta { display: grid; gap: 3px; min-width: 0; }
+  .tile-name { font-size: 15px; font-weight: 500; }
+  .tile-status {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .tile-link:not(.soon) .tile-status { color: var(--accent); }
+
+  .mini { position: relative; z-index: 1; width: 46%; height: 46%; }
+  .cell, .bar, .chip { background: rgba(255, 255, 255, 0.92); border-radius: 1.5px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 10%; }
+  .cell { opacity: 0.45; animation: cell-lit 3.6s var(--enter) calc(var(--i) * 230ms) infinite backwards; }
+  @keyframes cell-lit { 0%, 100% { opacity: 0.4; } 45% { opacity: 1; } }
+
+  .eq { display: flex; align-items: flex-end; gap: 9%; }
+  .eq .bar { flex: 1; height: 100%; transform-origin: bottom; transform: scaleY(0.55); }
+  /* Negative delays start each bar part-way in, so the four never move as one block. */
+  .eq .bar { animation: eq-step 1.25s var(--enter) calc(var(--i) * -370ms) infinite alternate; }
+  .eq .bar:nth-child(2) { animation-duration: 1.75s; }
+  .eq .bar:nth-child(3) { animation-duration: 0.95s; }
+  .eq .bar:nth-child(4) { animation-duration: 1.45s; }
+  @keyframes eq-step { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
+
+  .wave { display: flex; align-items: center; gap: 8%; }
+  /* --i is the distance from the middle bar, so the pulse opens outwards from the centre. */
+  .wave .bar {
+    flex: 1;
+    height: 100%;
+    transform-origin: center;
+    transform: scaleY(0.45);
+    animation: wave-pulse 1.5s var(--enter) calc(var(--i) * 140ms) infinite alternate backwards;
+  }
+  @keyframes wave-pulse { from { transform: scaleY(0.16); } to { transform: scaleY(1); } }
+
+  .panes { display: flex; align-items: center; gap: 14%; }
+  .pane { flex: 1; height: 86%; border: 1px solid rgba(255, 255, 255, 0.82); border-radius: 2px; }
+  .chip { position: absolute; left: 10%; top: 46%; width: 24%; height: 8%; animation: hand-off 3.4s var(--enter) infinite; }
+  /* Across, a beat in the right pane, then out and back to the left unseen. */
+  @keyframes hand-off {
+    0%, 12% { transform: translateX(0); opacity: 1; }
+    46%, 66% { transform: translateX(225%); opacity: 1; }
+    76%, 84% { transform: translateX(225%); opacity: 0; }
+    85% { transform: translateX(0); opacity: 0; }
+    95%, 100% { transform: translateX(0); opacity: 1; }
+  }
 
   /* scroll-margin clears the sticky header when the home page links straight to an app. */
   .app { padding: 40px 0; border-top: 1px solid var(--hairline); scroll-margin-top: 84px; }
@@ -263,8 +411,21 @@ const APPS = [
     .app { scroll-margin-top: 110px; }
   }
 
+  /*
+    The row stays four across at every width. Once the label no longer fits beside its
+    tile it goes under it instead, and the status is allowed to wrap onto a second line.
+  */
+  @media (max-width: 700px) {
+    .index { gap: 14px; }
+    .tile-link { display: block; }
+    .tile { width: 100%; max-width: 64px; margin-bottom: 10px; }
+    .tile-status { white-space: normal; font-size: 9px; }
+  }
+
   @media (max-width: 560px) {
     .intro { padding: 35px 0 40px; }
+    .index { margin-top: 36px; gap: 10px; }
+    .tile-name { font-size: 13.5px; }
     h2 { font-size: 28px; }
     .features { grid-template-columns: 1fr; }
   }
