@@ -110,7 +110,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
     };
     let switching = false;
 
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (event) => {
       const root = document.documentElement;
       const next = root.dataset.theme === 'light' ? 'dark' : 'light';
       const apply = () => {
@@ -132,22 +132,55 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       if (switching) return;
       switching = true;
 
-      // The circle grows from the button past the farthest viewport corner. The overshoot
-      // is spent off-screen, so the last thing visible is the edge leaving at full speed.
+      // The circle grows from the point that was clicked, past the farthest viewport
+      // corner. The overshoot is spent off-screen, so the last thing visible is the edge
+      // leaving at full speed. Keyboard activation carries no pointer position (Chrome
+      // synthesises 0,0), so it falls back to the button's own centre.
       const box = btn.getBoundingClientRect();
-      const x = box.left + box.width / 2;
-      const y = box.top + box.height / 2;
+      const pointer = event.clientX !== 0 || event.clientY !== 0;
+      const x = pointer ? event.clientX : box.left + box.width / 2;
+      const y = pointer ? event.clientY : box.top + box.height / 2;
       const corner = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+
+      const radius = corner * 1.18;
       root.style.setProperty('--tt-x', `${x}px`);
       root.style.setProperty('--tt-y', `${y}px`);
-      root.style.setProperty('--tt-r', `${corner * 1.18}px`);
+      root.style.setProperty('--tt-r', `${radius}px`);
+
+      // Timing stays in the stylesheet with the rest of the motion tokens. The build
+      // minifies CSS times to whichever unit is shorter, so 560ms reaches this as '.56s'
+      // — the unit has to be read, not assumed.
+      const ms = (name: string) => {
+        const value = getComputedStyle(root).getPropertyValue(name).trim();
+        return value.endsWith('ms') ? parseFloat(value) : parseFloat(value) * 1000;
+      };
 
       root.classList.add('theme-switch');
       const done = () => {
         root.classList.remove('theme-switch');
         switching = false;
       };
-      start(apply).finished.then(done, done);
+
+      const transition = start(apply);
+
+      // The stylesheet drives this same circle off --tt-*, which only works where custom
+      // properties inherit into the view transition pseudo-tree. Driving it here as well
+      // covers the engines where they don't, with identical geometry either way, and is
+      // itself skipped on engines that don't take a view transition pseudo-element here.
+      transition.ready.then(() => {
+        try {
+          root.animate(
+            { clipPath: [`circle(0 at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+            {
+              duration: ms('--t-reveal') || 560,
+              easing: getComputedStyle(root).getPropertyValue('--reveal-ease').trim() || 'ease-out',
+              pseudoElement: '::view-transition-new(root)',
+            },
+          );
+        } catch {}
+      }, () => {});
+
+      transition.finished.then(done, done);
     });
     sync();
   });

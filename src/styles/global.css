@@ -158,11 +158,16 @@ img { display: block; max-width: 100%; }
 
 /*
   Theme switch: instead of the crossfade, the new theme is wiped in as a circle growing
-  out of the toggle. The old snapshot holds still underneath while the new one is clipped
-  open over it, so the two palettes never blend into a washed-out middle frame.
-  --tt-x / --tt-y / --tt-r are written by the toggle from the button's own position, with
-  the radius overshooting the far corner so the circle is still growing past the viewport
-  when the animation ends, rather than landing on the last pixel it had to cover.
+  out of the point that was clicked. The old snapshot holds still underneath while the new
+  one is clipped open over it, so the two palettes never blend into a washed-out middle
+  frame. --tt-x / --tt-y / --tt-r are written by the toggle from the pointer position,
+  with the radius overshooting the far corner so the circle is still growing past the
+  viewport when the animation ends, rather than landing on the last pixel it had to cover.
+
+  Reaching the pseudo-element depends on custom properties inheriting into the view
+  transition tree, which not every engine does; the toggle also drives the same circle
+  through the Web Animations API, which covers the engines where they don't. Whichever
+  lands, the geometry is identical, so the two cannot disagree.
 */
 :root.theme-switch::view-transition-old(root),
 :root.theme-switch::view-transition-new(root) {
@@ -176,8 +181,8 @@ img { display: block; max-width: 100%; }
 }
 
 @keyframes theme-reveal {
-  from { clip-path: circle(0 at var(--tt-x) var(--tt-y)); }
-  to { clip-path: circle(var(--tt-r) at var(--tt-x) var(--tt-y)); }
+  from { clip-path: circle(0 at var(--tt-x, 50%) var(--tt-y, 50%)); }
+  to { clip-path: circle(var(--tt-r, 150vmax) at var(--tt-x, 50%) var(--tt-y, 50%)); }
 }
 
 /*
