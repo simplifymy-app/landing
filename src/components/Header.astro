@@ -69,7 +69,27 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
     transition: background var(--t-state) var(--enter), color var(--t-state) var(--enter);
   }
   #theme-toggle:hover { color: var(--text); }
-  .dot { width: 10px; height: 10px; border-radius: 5px; background: var(--accent); display: block; }
+  /*
+    DARK and LIGHT are different lengths, so the button — and with it the whole right end
+    of the bar — used to resize on every switch. An invisible copy of the longer word holds
+    the column open, so the label swaps inside a box that never changes width.
+  */
+  [data-theme-label] { display: inline-grid; justify-items: start; }
+  [data-theme-label]::before {
+    content: 'LIGHT';
+    grid-area: 1 / 1;
+    height: 0;
+    visibility: hidden;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background: var(--accent);
+    display: block;
+    transition: transform var(--t-state) var(--enter);
+  }
+  #theme-toggle:hover .dot { transform: scale(1.15); }
 
   /* The bar wraps to two rows here, so it is trimmed to stay a thin sticky strip. */
   @media (max-width: 720px) {
@@ -88,11 +108,46 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
     const sync = () => {
       label.textContent = document.documentElement.dataset.theme === 'light' ? 'LIGHT' : 'DARK';
     };
+    let switching = false;
+
     btn.addEventListener('click', () => {
-      const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-      document.documentElement.dataset.theme = next;
-      try { localStorage.setItem('simplify-site-theme', next); } catch {}
-      sync();
+      const root = document.documentElement;
+      const next = root.dataset.theme === 'light' ? 'dark' : 'light';
+      const apply = () => {
+        root.dataset.theme = next;
+        try { localStorage.setItem('simplify-site-theme', next); } catch {}
+        sync();
+      };
+
+      // View transitions are what make the circular wipe possible; without them (or with
+      // motion turned down) the swap is instant and the token transitions carry it.
+      const start = (document as any).startViewTransition?.bind(document);
+      if (!start || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        apply();
+        return;
+      }
+
+      // A second transition started while one is running skips the first outright, which
+      // is what a fast double-tap used to look like: an instant, unanimated swap.
+      if (switching) return;
+      switching = true;
+
+      // The circle grows from the button past the farthest viewport corner. The overshoot
+      // is spent off-screen, so the last thing visible is the edge leaving at full speed.
+      const box = btn.getBoundingClientRect();
+      const x = box.left + box.width / 2;
+      const y = box.top + box.height / 2;
+      const corner = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+      root.style.setProperty('--tt-x', `${x}px`);
+      root.style.setProperty('--tt-y', `${y}px`);
+      root.style.setProperty('--tt-r', `${corner * 1.18}px`);
+
+      root.classList.add('theme-switch');
+      const done = () => {
+        root.classList.remove('theme-switch');
+        switching = false;
+      };
+      start(apply).finished.then(done, done);
     });
     sync();
   });

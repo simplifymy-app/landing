@@ -5,7 +5,8 @@
 @import '@fontsource/ibm-plex-mono/latin-500.css';
 @import '@fontsource/caveat/latin-600.css';
 
-:root {
+:root,
+[data-theme='dark'] {
   --bg: #0B0B0C;
   --surface: #141416;
   --surface-alt: #1C1C1F;
@@ -25,6 +26,14 @@
   --t-state: 120ms;
   --t-theme: 160ms;
   --t-enter: 240ms;
+  --t-reveal: 560ms;
+  /*
+    The one curve here that must not settle. Every other easing decelerates into its end
+    value, which on the theme wipe means the circle is at its slowest exactly when it
+    reaches the edges — it reads as stalling and then cutting out. This one starts gently
+    and gains speed to the finish, so the edge is still accelerating when it leaves.
+  */
+  --reveal-ease: cubic-bezier(0.3, 0.1, 0.8, 0.65);
 
   --sans: 'Space Grotesk', system-ui, sans-serif;
   --mono: 'IBM Plex Mono', monospace;
@@ -143,6 +152,42 @@ img { display: block; max-width: 100%; }
 ::view-transition-new(root) {
   animation-duration: var(--t-enter);
   animation-timing-function: var(--enter);
+}
+
+/*
+  Theme switch: instead of the crossfade, the new theme is wiped in as a circle growing
+  out of the toggle. The old snapshot holds still underneath while the new one is clipped
+  open over it, so the two palettes never blend into a washed-out middle frame.
+  --tt-x / --tt-y / --tt-r are written by the toggle from the button's own position, with
+  the radius overshooting the far corner so the circle is still growing past the viewport
+  when the animation ends, rather than landing on the last pixel it had to cover.
+*/
+:root.theme-switch::view-transition-old(root),
+:root.theme-switch::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+:root.theme-switch::view-transition-old(root) { z-index: 0; }
+:root.theme-switch::view-transition-new(root) {
+  z-index: 1;
+  animation: theme-reveal var(--t-reveal) var(--reveal-ease);
+}
+
+@keyframes theme-reveal {
+  from { clip-path: circle(0 at var(--tt-x) var(--tt-y)); }
+  to { clip-path: circle(var(--tt-r) at var(--tt-x) var(--tt-y)); }
+}
+
+/*
+  ::view-transition-new(root) is a LIVE view of the page, not a still. So the token
+  transitions on body and the header would keep recolouring the already-revealed area for
+  their own 160ms and then land all at once — the blink. During the wipe the page changes
+  palette instantly and the circle is the only thing that animates.
+*/
+:root.theme-switch *,
+:root.theme-switch *::before,
+:root.theme-switch *::after {
+  transition: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
