@@ -4,6 +4,7 @@ import HeroGraphic from 'components/HeroGraphic.astro';
 
 const APPS = [
   { name: 'Gallery', blurb: 'A photo and video album that reads what is already on your phone. It does not even ask for internet permission.', status: 'On Google Play', live: true },
+  { name: 'Player', blurb: 'A music player for the files already on your phone. Background playback, lock screen and headset keys — and no internet permission.', status: 'In development', live: false },
   { name: 'Recorder', blurb: 'Voice recording with a real waveform, marks while you record, and simple cut-and-fade editing afterwards.', status: 'In development', live: false },
   { name: 'Files', blurb: 'A two-pane file manager. Mark on one side, copy or move to the other. The way file managers used to work.', status: 'In development', live: false },
 ];
@@ -18,7 +19,7 @@ const IDEA = [
 
 <Base
   title="Simplify my app — free Android apps with no ads, no accounts, no tracking"
-  description="Gallery, Recorder and Files: plain Android apps that are free, collect nothing and upload nothing. No ads, no accounts, no subscriptions."
+  description="Gallery, Player, Recorder and Files: plain Android apps that are free, collect nothing and upload nothing. No ads, no accounts, no subscriptions."
 >
   <main>
     <section class="hero-section">
@@ -54,7 +55,7 @@ const IDEA = [
 
     <section class="shell block">
       <div class="block-head">
-        <h2 class="kicker">The apps · 03</h2>
+        <h2 class="kicker">The apps · 04</h2>
         <a href="/apps" class="all">All apps →</a>
       </div>
       <div class="apps">
@@ -75,7 +76,7 @@ const IDEA = [
       </div>
       <div>
         <h2>Missing something?</h2>
-        <p>These are the apps I needed. Two of them are still being built, so this is the best moment to ask for something.</p>
+        <p>These are the apps I needed. Three of them are still being built, so this is the best moment to ask for something.</p>
         <a href="/contact" class="btn btn-quiet">Request a feature</a>
       </div>
     </section>
