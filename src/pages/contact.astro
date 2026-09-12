@@ -1,9 +1,9 @@
 ---
 import Base from 'layouts/Base.astro';
-import { EMAIL } from 'consts';
+import { CONTACT_APPS, CONTACT_KINDS, EMAIL } from 'consts';
 
-const APPS = ['Gallery', 'Player', 'Recorder', 'Files', 'Something else'];
-const KINDS = ['Feature request', 'Bug report', 'Question'];
+const APPS = CONTACT_APPS;
+const KINDS = CONTACT_KINDS;
 
 // Rendered href already works without JS; the script keeps it in sync with the fields.
 const initialMailto = `mailto:${EMAIL}?subject=${encodeURIComponent(`${KINDS[0]} · ${APPS[0]}`)}&body=`;
@@ -18,7 +18,7 @@ const CARDS = [
 <Base
   page="contact"
   title="Contact — feature requests & bug reports"
-  description="Feature requests, bug reports and questions for Gallery, Player, Recorder and Files. One person and an inbox — nothing is sent from this page."
+  description="Feature requests, bug reports and questions for Gallery, Player, Recorder and Files. One person and an inbox."
   pageType="ContactPage"
   trail={[{ name: 'Contact', path: '/contact/' }]}
 >
@@ -32,25 +32,45 @@ const CARDS = [
     <section class="columns">
       <div>
         <h2 class="kicker">Write a message</h2>
-        <div class="fields">
-          <label>
-            <span>Which app</span>
-            <select id="app">{APPS.map((a) => <option value={a}>{a}</option>)}</select>
-          </label>
-          <label>
-            <span>What kind of message</span>
-            <select id="kind">{KINDS.map((k) => <option value={k}>{k}</option>)}</select>
-          </label>
+        <form id="form" class="fields" method="post" action="/api/contact/" novalidate>
+          <div class="pair">
+            <label>
+              <span>Your name</span>
+              <input id="name" name="name" type="text" maxlength="80" autocomplete="name" placeholder="Alex" required />
+            </label>
+            <label>
+              <span>Your email</span>
+              <input id="email" name="email" type="email" maxlength="160" autocomplete="email" placeholder="alex@example.com" required />
+            </label>
+          </div>
+          <div class="pair">
+            <label>
+              <span>Which app</span>
+              <select id="app" name="app">{APPS.map((a) => <option value={a}>{a}</option>)}</select>
+            </label>
+            <label>
+              <span>What kind of message</span>
+              <select id="kind" name="kind">{KINDS.map((k) => <option value={k}>{k}</option>)}</select>
+            </label>
+          </div>
           <label>
             <span>Your message</span>
-            <textarea id="body" rows="7" placeholder="What should the app do that it does not do yet?"></textarea>
+            <textarea id="body" name="message" rows="7" maxlength="4000" placeholder="What should the app do that it does not do yet?" required></textarea>
           </label>
+
+          <div class="trap" aria-hidden="true">
+            <label>Company<input name="company" type="text" tabindex="-1" autocomplete="off" /></label>
+          </div>
+
           <div class="actions">
-            <a id="send" href={initialMailto} class="btn btn-accent">Send by email</a>
+            <button id="submit" type="submit" class="btn btn-accent">Send message</button>
+            <a id="send" href={initialMailto} class="btn btn-quiet">Use my mail app</a>
             <button id="copy" type="button" class="btn btn-quiet" data-email={EMAIL}>Copy address</button>
           </div>
-          <div class="fine">Opens your own mail app with the message filled in. Nothing is sent from this page and nothing is stored here.</div>
-        </div>
+
+          <p id="status" class="status" role="status" aria-live="polite"></p>
+          <div class="fine">Your name, email and message are sent to my inbox so I can reply. Nothing is stored on this site, and the address is never used for anything else.</div>
+        </form>
       </div>
 
       <aside class="cards">
@@ -85,10 +105,11 @@ const CARDS = [
   .columns h2 { margin: 0 0 18px; }
 
   .fields { display: grid; gap: 14px; }
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   label { display: grid; gap: 7px; }
   label > span { font-size: 14px; font-weight: 500; }
 
-  select, textarea {
+  select, textarea, input {
     border-radius: var(--r-control);
     background: var(--surface-alt);
     color: var(--text);
@@ -96,11 +117,27 @@ const CARDS = [
     font-family: var(--mono);
     font-size: 13px;
   }
-  select { height: 44px; padding: 0 12px; }
+  select, input { height: 44px; padding: 0 12px; }
+  input { min-width: 0; }
   textarea { padding: 12px; line-height: 1.6; resize: vertical; }
+  input::placeholder, textarea::placeholder { color: var(--text-faint); }
+
+  /* Offscreen rather than display:none — some bots skip fields they can tell are hidden. */
+  .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
   .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .fine { font-family: var(--mono); font-size: 11.5px; line-height: 1.7; color: var(--text-faint); }
+
+  .status {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+  .status:empty { display: none; }
+  .status[data-state='sent'] { color: var(--accent); }
+  .status[data-state='error'] { color: #FF6B6B; }
 
   .cards {
     display: grid;
@@ -118,6 +155,7 @@ const CARDS = [
   @media (max-width: 560px) {
     .intro { padding: 35px 0 36px; }
     .columns { gap: 36px; }
+    .pair { grid-template-columns: 1fr; }
   }
 </style>
 
@@ -125,13 +163,22 @@ const CARDS = [
   // astro:page-load fires on the first load and after every router swap, which replaces
   // the elements this binds to. The module itself only ever runs once.
   document.addEventListener('astro:page-load', () => {
+    const form = document.getElementById('form') as HTMLFormElement | null;
+    if (!form) return;
+
     const email = (document.getElementById('copy') as HTMLElement).dataset.email!;
     const app = document.getElementById('app') as HTMLSelectElement;
     const kind = document.getElementById('kind') as HTMLSelectElement;
     const body = document.getElementById('body') as HTMLTextAreaElement;
+    const name = document.getElementById('name') as HTMLInputElement;
+    const from = document.getElementById('email') as HTMLInputElement;
     const send = document.getElementById('send') as HTMLAnchorElement;
     const copy = document.getElementById('copy') as HTMLButtonElement;
+    const submit = document.getElementById('submit') as HTMLButtonElement;
+    const status = document.getElementById('status') as HTMLParagraphElement;
 
+    // The mailto link stays live as a fallback for anyone who would rather use their own
+    // client — and as the escape hatch when the endpoint is unreachable.
     const compose = () => {
       const subject = encodeURIComponent(`${kind.value} · ${app.value}`);
       send.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body.value)}`;
@@ -139,6 +186,54 @@ const CARDS = [
 
     for (const el of [app, kind, body]) el.addEventListener('input', compose);
     compose();
+
+    const say = (text: string, state: '' | 'sending' | 'sent' | 'error') => {
+      status.textContent = text;
+      status.dataset.state = state;
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      if (submit.disabled) return;
+
+      // Lets the browser say which field is wrong before anything crosses the network.
+      if (!form.reportValidity()) return;
+
+      submit.disabled = true;
+      submit.textContent = 'Sending…';
+      say('', '');
+
+      try {
+        const response = await fetch('/api/contact/', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            name: name.value,
+            email: from.value,
+            app: app.value,
+            kind: kind.value,
+            message: body.value,
+            company: (form.elements.namedItem('company') as HTMLInputElement).value,
+          }),
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          say(result.error ?? 'Something went wrong. Please try again.', 'error');
+          return;
+        }
+
+        form.reset();
+        compose();
+        say('Sent. I read every message and will reply to the address you gave.', 'sent');
+      } catch {
+        say('The message did not go through — no connection. The mail app button still works.', 'error');
+      } finally {
+        submit.disabled = false;
+        submit.textContent = 'Send message';
+      }
+    });
 
     copy.addEventListener('click', async () => {
       try { await navigator.clipboard.writeText(email); } catch {}

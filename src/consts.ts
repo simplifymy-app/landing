@@ -57,6 +57,17 @@ export const APPS = [
   },
 ] as const;
 
+export const CONTACT_APPS = [
+  ...APPS.map((a) => a.name),
+  "Something else",
+] as const;
+
+export const CONTACT_KINDS = [
+  "Feature request",
+  "Bug report",
+  "Question",
+] as const;
+
 export const playUrl = (playId: string | null) =>
   playId ? `https://play.google.com/store/apps/details?id=${playId}` : null;
 
