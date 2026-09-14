@@ -1,9 +1,9 @@
 export const BUILDS = {
   "win:x64:setup": "SimplifyMyShot-win-x64-Setup.exe",
-  "win:x64:msi": "SimplifyMyShot-win-x64-Setup.msi",
+  "win:x64:msi": "SimplifyMyShot-win-x64.msi",
   "win:x64:portable": "SimplifyMyShot-win-x64-Portable.zip",
   "win:arm64:setup": "SimplifyMyShot-win-arm64-Setup.exe",
-  "win:arm64:msi": "SimplifyMyShot-win-arm64-Setup.msi",
+  "win:arm64:msi": "SimplifyMyShot-win-arm64.msi",
   "win:arm64:portable": "SimplifyMyShot-win-arm64-Portable.zip",
   "osx:x64:setup": "SimplifyMyShot-osx-x64-Setup.pkg",
   "osx:x64:portable": "SimplifyMyShot-osx-x64-Portable.zip",
