@@ -1,6 +1,7 @@
 ---
 import { Image } from 'astro:assets';
 import Base from 'layouts/Base.astro';
+import DownloadCta from 'components/DownloadCta.astro';
 import { DESKTOP_APPS } from 'consts';
 
 import shotEditor from 'assets/shot-editor.png';
@@ -103,12 +104,16 @@ const SHOTS = [
     <section class="app" id={SHOT.slug}>
       <div class="head">
         <h2>{SHOT.fullName}</h2>
-        <span class="badge dev">In development</span>
         <span class="meta">Screenshots · {SHOT.os}</span>
       </div>
 
       <p class="desc">Take the shot, say what matters on it, and move on. Drag out an area, grab a window with its shadow, or let it scroll a long page and stitch the frames back together. Then arrows, boxes, numbered steps, a blur over what should not be in the picture, and a ruler that writes the measurement into the image. It reads the text out of a screenshot too, so a number on screen becomes a number you can paste.</p>
       <p class="desc">There is no account, no library in the cloud and no upload. A screenshot is a file on your disk, which is what it always was.</p>
+
+      <div class="get">
+        <DownloadCta browse="/download/" />
+        <p class="get-note">Free. No account, no upload — and it keeps itself up to date after the first install.</p>
+      </div>
 
       <ul class="features">
         {FEATURES.map((f) => <li>{f}</li>)}
@@ -270,20 +275,7 @@ const SHOTS = [
 
   .head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   h2 { margin: 0; font-size: 34px; line-height: 1.1; font-weight: 600; letter-spacing: -0.03em; }
-  /* Badge and meta share one height and one centre line, so they sit level with the name. */
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    height: 22px;
-    padding: 0 8px;
-    font-family: var(--mono);
-    font-size: 11px;
-    line-height: 1;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    border-radius: var(--r-control);
-  }
-  .dev { color: var(--accent); border: 1px solid var(--accent); }
+  /* Meta shares the name's centre line, so the two sit level. */
   .meta {
     display: inline-flex;
     align-items: center;
@@ -295,6 +287,9 @@ const SHOTS = [
   }
 
   .desc { margin: 18px 0 0; font-size: 16px; line-height: 1.65; color: var(--text-muted); max-width: 62ch; }
+
+  .get { margin: 30px 0 4px; }
+  .get-note { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--text-faint); }
 
   .features {
     display: grid;

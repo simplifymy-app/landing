@@ -63,6 +63,8 @@ export default defineConfig({
         access: "secret",
         default: "onboarding@resend.dev",
       }),
+      // Fine-grained PAT, Contents: Read-only on the private binaries repository.
+      GITHUB_TOKEN: envField.string({ context: "server", access: "secret" }),
     },
   },
 
@@ -81,6 +83,8 @@ export default defineConfig({
         !page.includes("/og/") &&
         !page.includes("/404") &&
         !page.includes("/api/") &&
+        // Linked to deliberately, not found by search.
+        !page.includes("/download/") &&
         page !== `${SITE}/apps/`,
       serialize(item) {
         const path = item.url.replace(SITE, "");

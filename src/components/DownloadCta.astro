@@ -1,0 +1,98 @@
+---
+// Shared by /desktop/ and /download/ so detection lives in one place. Client-side only,
+// so it costs a static page nothing.
+interface Props {
+  /** Where "every build" goes: an anchor on this page, or the download page. */
+  browse?: string;
+}
+
+const { browse = '/download/' } = Astro.props;
+---
+
+<div class="cta" data-dl-cta data-browse={browse}>
+  <a class="btn btn-accent" data-dl-primary href={browse}>Choose a build</a>
+  <p class="guess" data-dl-guess hidden></p>
+</div>
+
+<style>
+  .guess {
+    margin: 12px 0 0;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-faint);
+  }
+  .guess a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+</style>
+
+<script>
+  // Fires on first load and after every router swap, which replaces these elements.
+  document.addEventListener('astro:page-load', () => {
+    const blocks = document.querySelectorAll('[data-dl-cta]');
+    if (!blocks.length) return;
+
+    const NAMES = {
+      'win:x64': 'Windows (64-bit)',
+      'win:arm64': 'Windows (ARM64)',
+      'osx:arm64': 'macOS (Apple Silicon)',
+      'osx:x64': 'macOS (Intel)',
+    };
+
+    // Client Hints are the only honest source, and only Chromium ships them. Everywhere
+    // else the UA string cannot tell an Apple Silicon Mac from an Intel one at all.
+    const fromHints = async () => {
+      const uad = navigator.userAgentData;
+      if (!uad?.getHighEntropyValues) return null;
+
+      let hints;
+      try {
+        hints = await uad.getHighEntropyValues(['architecture', 'bitness', 'platform']);
+      } catch {
+        return null;
+      }
+
+      const platform = hints.platform || uad.platform || '';
+      const os = /windows/i.test(platform) ? 'win' : /mac/i.test(platform) ? 'osx' : null;
+      if (!os) return null;
+
+      const arch = hints.architecture === 'arm' && hints.bitness === '64' ? 'arm64' : 'x64';
+      return { os, arch, certain: true };
+    };
+
+    const fromUserAgent = () => {
+      const ua = navigator.userAgent || '';
+      const platform = navigator.platform || '';
+
+      if (/Win/i.test(platform) || /Windows/i.test(ua)) {
+        return { os: 'win', arch: /ARM|aarch64/i.test(ua) ? 'arm64' : 'x64', certain: true };
+      }
+      if (/Mac/i.test(platform) || /Mac OS X/i.test(ua)) {
+        // Not detectable from the UA, so assume every Mac sold since late 2020.
+        return { os: 'osx', arch: 'arm64', certain: false };
+      }
+      return null;
+    };
+
+    (async () => {
+      const detected = (await fromHints()) ?? fromUserAgent();
+      if (!detected) return; // Linux, a phone, or something unrecognised: the list stands.
+
+      const { os, arch, certain } = detected;
+
+      for (const block of blocks) {
+        const primary = block.querySelector('[data-dl-primary]');
+        const guess = block.querySelector('[data-dl-guess]');
+        const browse = block.dataset.browse || '/download/';
+        if (!primary || !guess) continue;
+
+        primary.href = `/api/download/?platform=${os}&arch=${arch}&kind=setup`;
+        primary.textContent = `Download for ${NAMES[`${os}:${arch}`]}`;
+
+        guess.hidden = false;
+        guess.innerHTML = certain
+          ? `Not the right one? <a href="${browse}">Every build is listed here.</a>`
+          : 'Macs cannot be told apart from the browser, so this assumes Apple Silicon. ' +
+            `On an Intel Mac, <a href="${browse}">take the Intel build.</a>`;
+      }
+    })();
+  });
+</script>

@@ -52,7 +52,8 @@ const softwareApplication = (
   app: RegistryApp,
   { page, os }: { page: string; os: string },
 ) => {
-  const store = playUrl(app.playId);
+  // Falls back to our own download page: an app served from this site is not PreOrder.
+  const store = playUrl(app.playId) ?? ('downloadPath' in app ? abs(app.downloadPath) : null);
   return {
     '@type': 'SoftwareApplication',
     '@id': `${SITE_URL}${page}#${app.slug}`,

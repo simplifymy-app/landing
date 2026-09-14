@@ -85,8 +85,10 @@ export const DESKTOP_APPS = [
     os: "macOS, Windows",
     summary:
       "A screenshot and annotation tool for macOS and Windows. Capture an area, a window or a scrolling page, mark it up, read the text out of it, and copy it — without an account or an upload.",
-    available: false,
+    available: true,
     playId: null,
+    // No store listing: the schema offer and the download page point at this same path.
+    downloadPath: "/download/",
   },
 ] as const;
 
@@ -125,6 +127,6 @@ export const FAQ = [
   },
   {
     q: "Which apps are available right now?",
-    a: "Gallery is on Google Play today. Player, Recorder and Files are in development, and Shot — the screenshot tool for macOS and Windows — is in development too. All of them will be released the same way: free, with no ads and no data collection.",
+    a: "Gallery is on Google Play today, and Shot — the screenshot tool for macOS and Windows — can be downloaded from this site. Player, Recorder and Files are still in development. All of them are released the same way: free, with no ads and no data collection.",
   },
 ] as const;

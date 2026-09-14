@@ -1,0 +1,181 @@
+---
+import Base from 'layouts/Base.astro';
+import DownloadCta from 'components/DownloadCta.astro';
+import { DESKTOP_APPS } from 'consts';
+import { getRelease } from '../lib/github.js';
+
+// Rendered per request: a build-time version would go stale the moment a release shipped
+// without a redeploy of this site.
+export const prerender = false;
+
+const SHOT = DESKTOP_APPS[0];
+
+// The version is decoration on a list of links: if it cannot be read, the links still work.
+let release = null;
+try {
+  release = await getRelease();
+} catch (cause) {
+  console.error('[download] release lookup failed, rendering without a version:', cause);
+}
+
+const version = release?.tag_name ?? null;
+
+// UTC and formatted by hand: Intl would resolve against whichever region the function
+// runs in, so a late-in-the-day release would render a different date per region.
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const published = release?.published_at
+  ? (() => {
+      const at = new Date(release.published_at);
+      return `${at.getUTCDate()} ${MONTHS[at.getUTCMonth()]} ${at.getUTCFullYear()}`;
+    })()
+  : null;
+
+const href = (platform, arch, kind) =>
+  `/api/download/?platform=${platform}&arch=${arch}&kind=${kind}`;
+
+// All eight, always on the page: detection is a guess, so it is never the only way out.
+const BUILDS = [
+  {
+    os: 'Windows',
+    platform: 'win',
+    variants: [
+      { arch: 'x64', label: 'Intel or AMD (64-bit)', note: 'Almost every Windows PC.' },
+      { arch: 'arm64', label: 'ARM64', note: 'Snapdragon and other ARM laptops.' },
+    ],
+  },
+  {
+    os: 'macOS',
+    platform: 'osx',
+    variants: [
+      { arch: 'arm64', label: 'Apple Silicon', note: 'M1 and every Mac since.' },
+      { arch: 'x64', label: 'Intel', note: 'Macs made before late 2020.' },
+    ],
+  },
+];
+
+const KINDS = [
+  { kind: 'setup', label: 'Installer' },
+  { kind: 'portable', label: 'Portable' },
+];
+---
+
+<Base
+  title="Download — Simplify my Shot"
+  description="Download Simplify my Shot for macOS and Windows."
+  noindex
+>
+  <main class="shell">
+    <section class="intro">
+      <div class="kicker">Download · {SHOT.name}</div>
+      <h1 class="page-h1">Take the shot.</h1>
+      <p class="lede">
+        {SHOT.fullName} for macOS and Windows. Free, no account, nothing uploaded — and it
+        keeps itself up to date after the first install.
+      </p>
+
+      <p class="version">
+        {version
+          ? <>Version <strong>{version}</strong>{published && <> · published {published}</>}</>
+          : <>Version information is unavailable right now — the downloads below still work.</>}
+      </p>
+
+      <div class="primary">
+        <DownloadCta browse="#builds" />
+      </div>
+    </section>
+
+    <section class="builds" id="builds">
+      <h2 class="builds-h2">All builds</h2>
+
+      {BUILDS.map((group) => (
+        <div class="group">
+          <h3>{group.os}</h3>
+          <ul>
+            {group.variants.map((variant) => (
+              <li>
+                <div class="what">
+                  <span class="arch">{variant.label}</span>
+                  <span class="note">{variant.note}</span>
+                </div>
+                <div class="links">
+                  {KINDS.map(({ kind, label }) => (
+                    <a class="btn btn-quiet" href={href(group.platform, variant.arch, kind)}>
+                      {label}
+                    </a>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  </main>
+</Base>
+
+<style>
+  .intro { padding: 88px 0 40px; }
+
+  .version {
+    margin: 20px 0 0;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--text-faint);
+  }
+  .version strong { font-weight: 500; color: var(--text-muted); }
+
+  .primary { margin-top: 28px; }
+
+  .builds {
+    padding: 24px 0 96px;
+    border-top: 1px solid var(--hairline);
+    margin-top: 56px;
+  }
+
+  .builds-h2 {
+    margin: 0 0 8px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .group { margin-top: 32px; }
+  .group h3 {
+    margin: 0 0 12px;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  .group ul { list-style: none; margin: 0; padding: 0; }
+
+  .group li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 16px 18px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+  }
+  .group li + li { margin-top: 8px; }
+
+  .what { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .arch { font-size: 15px; font-weight: 500; }
+  .note { font-size: 13px; color: var(--text-faint); }
+
+  .links { display: flex; gap: 8px; flex-shrink: 0; }
+  .links .btn { height: 38px; padding: 0 16px; font-size: 13.5px; }
+
+  @media (max-width: 560px) {
+    .intro { padding-top: 64px; }
+    .group li { align-items: flex-start; }
+    .links { width: 100%; }
+    .links .btn { flex: 1; justify-content: center; }
+  }
+</style>
