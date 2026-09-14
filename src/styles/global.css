@@ -17,6 +17,20 @@
   --accent: #6E8BFF;
   --on-accent: #0B0B0C;
 
+  /*
+    Popovers float above the page rather than sitting in it, so they get their own ground
+    instead of reusing --surface. In the dark theme lifting means going lighter than the
+    page; in the light one it means staying white while the page's own surfaces go grey.
+  */
+  --elevated: #17171A;
+  /*
+    The row highlight is measured against --elevated, not the page, so it needs its own
+    value: --surface-alt sits a single step above the panel's ground and all but vanishes
+    on a dark screen.
+  */
+  --elevated-hover: #292930;
+  --shadow-pop: 0 14px 34px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+
   --r-control: 4px;
   --r-card: 6px;
   --r-tile: 12px;
@@ -55,6 +69,10 @@
   --text-faint: #74747C;
   --accent: #4A5FE0;
   --on-accent: #FFFFFF;
+
+  --elevated: #FFFFFF;
+  --elevated-hover: #ECECEF;
+  --shadow-pop: 0 14px 30px rgba(19, 19, 21, 0.11), 0 2px 6px rgba(19, 19, 21, 0.06);
 
   color-scheme: light;
 }

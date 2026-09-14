@@ -124,9 +124,10 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     padding: 6px;
     display: grid;
     gap: 2px;
-    background: var(--surface);
+    background: var(--elevated);
     border: 1px solid var(--hairline);
     border-radius: var(--r-card);
+    box-shadow: var(--shadow-pop);
     opacity: 0;
     visibility: hidden;
     transform: translateY(-5px);
@@ -169,19 +170,18 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     gap: 3px;
     padding: 10px 12px;
     border-radius: var(--r-control);
-    color: var(--text-muted);
+    color: var(--text);
     transition: background var(--t-state) var(--enter), color var(--t-state) var(--enter);
   }
   .panel a:hover,
-  .panel a:focus-visible { background: var(--surface-alt); color: var(--text); }
-  .panel a[aria-current='page'] { color: var(--text); }
+  .panel a:focus-visible { background: var(--elevated-hover); }
   .panel a[aria-current='page'] .child-label { color: var(--accent); }
   .child-label { font-size: 14px; font-weight: 500; }
   .child-note {
     font-family: var(--mono);
     font-size: 10.5px;
     line-height: 1.45;
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   #theme-toggle {
