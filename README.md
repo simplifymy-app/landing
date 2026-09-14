@@ -83,28 +83,34 @@ memory, so a cold start or a second concurrent instance simply refetches.
 | --- | --- | --- |
 | `platform` | `win`, `osx` | required |
 | `arch` | `x64`, `arm64` | required |
-| `kind` | `setup`, `portable` | `setup` |
+| `kind` | `setup`, `msi`, `portable` | `setup` |
 
-Answers `302` to the signed URL, `400` on a parameter outside the allowlist, `404` if the
-release has no such asset. The parameters select a row from a table of the eight known
-filenames in `src/pages/api/download.js` — a filename is never assembled from them, so a
-value that is not a key cannot reach GitHub in any form.
+Answers `302` to the signed URL, `400` on a parameter outside the allowlist or a
+combination that is not built (`msi` is Windows-only), `404` if the release has no such
+asset. The parameters select a row from the table in `src/lib/builds.js` — a filename is
+never assembled from them, so a value that is not a key cannot reach GitHub in any form.
 
-The release must contain assets named exactly:
+Asset names must match exactly:
 
 ```
 SimplifyMyShot-win-x64-Setup.exe        SimplifyMyShot-win-x64-Portable.zip
 SimplifyMyShot-win-arm64-Setup.exe      SimplifyMyShot-win-arm64-Portable.zip
+SimplifyMyShot-win-x64-Setup.msi        SimplifyMyShot-win-arm64-Setup.msi
 SimplifyMyShot-osx-x64-Setup.pkg        SimplifyMyShot-osx-x64-Portable.zip
 SimplifyMyShot-osx-arm64-Setup.pkg      SimplifyMyShot-osx-arm64-Portable.zip
 ```
+
+The MSI names are assumed to follow the same scheme as the `.exe` — no release has shipped
+one yet, so confirm what Velopack actually emits before relying on them.
 
 ### `/download/`
 
 The download page. Rendered per request so the version and publish date come from the
 current release rather than from whenever the site was last built. It guesses the visitor's
-platform from `navigator.userAgentData` and falls back to the UA string, but all eight
-builds are listed on the page regardless — a guess is never the only way out. Apple Silicon
+platform from `navigator.userAgentData` and falls back to the UA string, but every build is
+listed on the page regardless — a guess is never the only way out. The list is filtered to
+what the release actually contains, so an unpublished build (the MSI, today) is absent
+rather than a link that 404s, and appears on its own once you ship one. Apple Silicon
 cannot be detected from a user agent at all, so macOS is assumed to be `arm64` and labelled
 as an assumption, with the Intel build one click away.
 

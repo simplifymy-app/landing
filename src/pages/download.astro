@@ -2,6 +2,7 @@
 import Base from 'layouts/Base.astro';
 import DownloadCta from 'components/DownloadCta.astro';
 import { DESKTOP_APPS } from 'consts';
+import { filenameFor } from '../lib/builds.js';
 import { getRelease } from '../lib/github.js';
 
 // Rendered per request: a build-time version would go stale the moment a release shipped
@@ -33,11 +34,16 @@ const published = release?.published_at
 const href = (platform, arch, kind) =>
   `/api/download/?platform=${platform}&arch=${arch}&kind=${kind}`;
 
-// All eight, always on the page: detection is a guess, so it is never the only way out.
-const BUILDS = [
+// Every build, always on the page: detection is a guess, so it is never the only way out.
+const PLATFORMS = [
   {
     os: 'Windows',
     platform: 'win',
+    kinds: [
+      { kind: 'setup', label: 'Installer' },
+      { kind: 'msi', label: 'MSI' },
+      { kind: 'portable', label: 'Portable' },
+    ],
     variants: [
       { arch: 'x64', label: 'Intel or AMD (64-bit)', note: 'Almost every Windows PC.' },
       { arch: 'arm64', label: 'ARM64', note: 'Snapdragon and other ARM laptops.' },
@@ -46,6 +52,10 @@ const BUILDS = [
   {
     os: 'macOS',
     platform: 'osx',
+    kinds: [
+      { kind: 'setup', label: 'Installer' },
+      { kind: 'portable', label: 'Portable' },
+    ],
     variants: [
       { arch: 'arm64', label: 'Apple Silicon', note: 'M1 and every Mac since.' },
       { arch: 'x64', label: 'Intel', note: 'Macs made before late 2020.' },
@@ -53,10 +63,20 @@ const BUILDS = [
   },
 ];
 
-const KINDS = [
-  { kind: 'setup', label: 'Installer' },
-  { kind: 'portable', label: 'Portable' },
-];
+// Only what the release actually ships, so a build that is not published yet — the MSI,
+// today — is absent rather than a link that 404s. Unreadable release: show everything.
+const shipped = release ? new Set(release.assets.map((asset) => asset.name)) : null;
+const has = (platform, arch, kind) => {
+  const name = filenameFor(platform, arch, kind);
+  return name ? !shipped || shipped.has(name) : false;
+};
+
+const GROUPS = PLATFORMS.map((group) => ({
+  ...group,
+  variants: group.variants
+    .map((variant) => ({ ...variant, kinds: group.kinds.filter((k) => has(group.platform, variant.arch, k.kind)) }))
+    .filter((variant) => variant.kinds.length),
+})).filter((group) => group.variants.length);
 ---
 
 <Base
@@ -87,7 +107,7 @@ const KINDS = [
     <section class="builds" id="builds">
       <h2 class="builds-h2">All builds</h2>
 
-      {BUILDS.map((group) => (
+      {GROUPS.map((group) => (
         <div class="group">
           <h3>{group.os}</h3>
           <ul>
@@ -98,7 +118,7 @@ const KINDS = [
                   <span class="note">{variant.note}</span>
                 </div>
                 <div class="links">
-                  {KINDS.map(({ kind, label }) => (
+                  {variant.kinds.map(({ kind, label }) => (
                     <a class="btn btn-quiet" href={href(group.platform, variant.arch, kind)}>
                       {label}
                     </a>

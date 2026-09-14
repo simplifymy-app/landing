@@ -1,5 +1,6 @@
 // GET /api/download/?platform=win&arch=x64&kind=setup -> 302 to a signed S3 URL.
 
+import { ARCHES, KINDS, PLATFORMS, filenameFor } from '../../lib/builds.js';
 import { GitHubError, findAsset, getRelease, getSignedUrl } from '../../lib/github.js';
 
 export const prerender = false;
@@ -9,23 +10,6 @@ export const prerender = false;
 function isAuthorized(request) {
   return true;
 }
-// Written out rather than assembled: the parameters only ever select a row, so a value
-// that is not a key here cannot reach GitHub in any form.
-const BUILDS = {
-  'win:x64:setup': 'SimplifyMyShot-win-x64-Setup.exe',
-  'win:x64:portable': 'SimplifyMyShot-win-x64-Portable.zip',
-  'win:arm64:setup': 'SimplifyMyShot-win-arm64-Setup.exe',
-  'win:arm64:portable': 'SimplifyMyShot-win-arm64-Portable.zip',
-  'osx:x64:setup': 'SimplifyMyShot-osx-x64-Setup.pkg',
-  'osx:x64:portable': 'SimplifyMyShot-osx-x64-Portable.zip',
-  'osx:arm64:setup': 'SimplifyMyShot-osx-arm64-Setup.pkg',
-  'osx:arm64:portable': 'SimplifyMyShot-osx-arm64-Portable.zip',
-};
-
-const PLATFORMS = ['win', 'osx'];
-const ARCHES = ['x64', 'arm64'];
-const KINDS = ['setup', 'portable'];
-
 const problem = (status, error) =>
   new Response(JSON.stringify({ error }), {
     status,
@@ -51,7 +35,10 @@ export const GET = async ({ request, url }) => {
     return problem(400, `kind must be one of: ${KINDS.join(', ')}.`);
   }
 
-  const filename = BUILDS[`${platform}:${arch}:${kind}`];
+  const filename = filenameFor(platform, arch, kind);
+  if (!filename) {
+    return problem(400, `${kind} is not built for ${platform}.`);
+  }
 
   try {
     const release = await getRelease();
