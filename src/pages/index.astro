@@ -1,9 +1,7 @@
 ---
 import Base from 'layouts/Base.astro';
 import HeroGraphic from 'components/HeroGraphic.astro';
-import { APPS as REGISTRY, DESKTOP_APPS, FAQ, playUrl } from 'consts';
-
-const GALLERY_PLAY = playUrl(REGISTRY.find((a) => a.slug === 'gallery')?.playId ?? null);
+import { DESKTOP_APPS, FAQ } from 'consts';
 
 const APPS = [
   { name: 'Gallery', blurb: 'A photo and video album that reads what is already on your phone. It does not even ask for internet permission.', status: 'On Google Play', live: true },
@@ -39,9 +37,6 @@ const IDEA = [
           <p>I got tired of tons of apps that put a banner, a paywall, a sign-in and a “Pro” tier in front of something simple. So I built the plain versions for myself, use them every day — and I give them to everyone else too.</p>
           <p>They are free. There are no ads. Nothing is collected. Nothing is uploaded.</p>
           <div class="ctas">
-            {GALLERY_PLAY && (
-              <a href={GALLERY_PLAY} class="btn btn-accent">Get Gallery on Google Play</a>
-            )}
             <a href="/privacy/" class="btn btn-quiet">What we collect: nothing</a>
           </div>
           <div class="claims">
@@ -146,7 +141,7 @@ const IDEA = [
     text-wrap: pretty;
   }
   .copy p + p { margin-top: 14px; }
-  .ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+  .ctas { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
   .claims {
     display: flex;
     flex-wrap: wrap;
