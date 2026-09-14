@@ -61,8 +61,10 @@ const others = APPS.filter((other) => other.slug !== app.slug);
         {content.highlights.map((item, i) => (
           <div class="does-cell" style={`--d: ${120 + i * 90}ms;`}>
             <AppTile mini={item.mini} tint={item.tint} />
-            <div class="does-title">{item.title}</div>
-            <div class="does-body">{item.body}</div>
+            <div class="does-copy">
+              <div class="does-title">{item.title}</div>
+              <div class="does-body">{item.body}</div>
+            </div>
           </div>
         ))}
       </section>
@@ -228,16 +230,21 @@ const others = APPS.filter((other) => other.slug !== app.slug);
   .more-name { font-size: 16px; font-weight: 500; }
   .more-badges { display: flex; flex-wrap: nowrap; gap: 6px; }
 
-  @media (max-width: 720px) {
-    .does { grid-template-columns: repeat(2, 1fr); gap: 28px 22px; }
+  @media (max-width: 900px) {
+    .does { grid-template-columns: 1fr; gap: 20px; padding-bottom: 36px; }
+    .does-cell { display: flex; align-items: center; gap: 16px; }
+    .does .does-cell :global(.tile) { width: 52px; margin-bottom: 0; }
+    .does-copy { min-width: 0; }
+  }
+
+  @media (max-width: 640px) {
+    .title { gap: 14px; }
+    .intro .title :global(.tile) { width: 48px; }
   }
 
   @media (max-width: 560px) {
-    .title { display: block; }
-    .title :global(.tile) { width: 52px; margin: 0 0 16px; }
-    .does { grid-template-columns: 1fr; gap: 26px; }
+    .does { gap: 18px; }
     .features { grid-template-columns: 1fr; }
-    .wide { grid-template-columns: 1fr; }
     .more-rows { grid-template-columns: 1fr; }
   }
 </style>
