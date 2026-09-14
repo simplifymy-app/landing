@@ -8,8 +8,13 @@ const SITE = "https://simplifymy.app";
 
 const ROUTES = {
   "/": { source: "src/pages/index.astro", priority: 1.0, changefreq: "weekly" },
-  "/apps/": {
-    source: "src/pages/apps.astro",
+  "/mobile/": {
+    source: "src/pages/mobile.astro",
+    priority: 0.9,
+    changefreq: "weekly",
+  },
+  "/desktop/": {
+    source: "src/pages/desktop.astro",
     priority: 0.9,
     changefreq: "weekly",
   },
@@ -64,15 +69,19 @@ export default defineConfig({
   // Keeps the canonical tag, the sitemap entry and the served URL a single string.
   trailingSlash: "always",
 
+
   build: { format: "directory", inlineStylesheets: "auto" },
 
   integrations: [
     sitemap({
-      // The share cards are images served from a route; listed as pages they read as soft-404s.
+      // The share cards are images served from a route; listed as pages they read as
+      // soft-404s. /apps/ only exists to 301 to /mobile/, and a sitemap that advertises a
+      // redirect asks Google to crawl a URL it is told in the same breath to forget.
       filter: (page) =>
         !page.includes("/og/") &&
         !page.includes("/404") &&
-        !page.includes("/api/"),
+        !page.includes("/api/") &&
+        page !== `${SITE}/apps/`,
       serialize(item) {
         const path = item.url.replace(SITE, "");
         const route = ROUTES[path];

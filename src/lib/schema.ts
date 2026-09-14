@@ -1,5 +1,5 @@
 import type { WithContext, Thing, Graph } from 'schema-dts';
-import { APPS, EMAIL, FAQ, LANG, SITE, SITE_URL, TAGLINE, playUrl } from 'consts';
+import { APPS, DESKTOP_APPS, EMAIL, FAQ, LANG, SITE, SITE_URL, TAGLINE, playUrl } from 'consts';
 
 // One connected @graph per page: stable @ids mean the app's publisher, the site's publisher
 // and the breadcrumb's organisation read as one entity, not three lookalikes.
@@ -46,17 +46,22 @@ const website = {
 } as const;
 
 // Priced explicitly at zero so the "free" claim is machine-readable.
-const softwareApplication = (app: (typeof APPS)[number]) => {
+type RegistryApp = (typeof APPS)[number] | (typeof DESKTOP_APPS)[number];
+
+const softwareApplication = (
+  app: RegistryApp,
+  { page, os }: { page: string; os: string },
+) => {
   const store = playUrl(app.playId);
   return {
     '@type': 'SoftwareApplication',
-    '@id': `${SITE_URL}/apps/#${app.slug}`,
-    name: `${app.name} — ${SITE}`,
+    '@id': `${SITE_URL}${page}#${app.slug}`,
+    name: `${'fullName' in app ? app.fullName : app.name} — ${SITE}`,
     alternateName: app.name,
     applicationCategory: app.category,
-    operatingSystem: 'Android',
+    operatingSystem: os,
     description: app.summary,
-    url: `${SITE_URL}/apps/#${app.slug}`,
+    url: `${SITE_URL}${page}#${app.slug}`,
     inLanguage: LANG,
     isAccessibleForFree: true,
     publisher: { '@id': ORG_ID },
@@ -96,13 +101,14 @@ const faqPage = () => ({
 });
 
 export interface SchemaOptions {
-  /** Page path, leading and trailing slash included, e.g. "/apps/". */
+  /** Page path, leading and trailing slash included, e.g. "/mobile/". */
   path: string;
   title: string;
   description: string;
   /** Trail below the home page; home itself is prepended. */
   trail?: { name: string; path: string }[];
   apps?: boolean;
+  desktop?: boolean;
   faq?: boolean;
   pageType?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage';
   /** Absolute URL of this page's Open Graph card. */
@@ -110,7 +116,7 @@ export interface SchemaOptions {
 }
 
 export function buildSchema(options: SchemaOptions): WithContext<Graph> {
-  const { path, title, description, trail = [], apps, faq, image, pageType = 'WebPage' } = options;
+  const { path, title, description, trail = [], apps, desktop, faq, image, pageType = 'WebPage' } = options;
   const isHome = path === '/';
 
   const nodes: Thing[] = [logo, organization, website];
@@ -145,7 +151,20 @@ export function buildSchema(options: SchemaOptions): WithContext<Graph> {
     );
   }
 
-  if (apps) nodes.push(...APPS.map((app) => softwareApplication(app) as Thing));
+  if (apps)
+    nodes.push(
+      ...APPS.map(
+        (app) =>
+          softwareApplication(app, { page: '/mobile/', os: 'Android' }) as Thing,
+      ),
+    );
+  if (desktop)
+    nodes.push(
+      ...DESKTOP_APPS.map(
+        (app) =>
+          softwareApplication(app, { page: '/desktop/', os: app.os }) as Thing,
+      ),
+    );
   if (faq) nodes.push(faqPage() as Thing);
 
   return { '@context': 'https://schema.org', '@graph': nodes } as WithContext<Graph>;

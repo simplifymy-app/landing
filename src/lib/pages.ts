@@ -17,11 +17,17 @@ export const PAGES = {
     description:
       'Free Android apps with no ads, no accounts and no tracking. Nothing is collected, nothing is uploaded.',
   },
-  apps: {
-    path: '/apps/',
+  mobile: {
+    path: '/mobile/',
     title: 'Apps I use every day.',
     description:
       'Gallery, Player, Recorder and Files. Free, no ads, no accounts, no in-app purchases.',
+  },
+  desktop: {
+    path: '/desktop/',
+    title: 'The same idea, on the desktop.',
+    description:
+      'Shot: screenshots, annotation and OCR for macOS and Windows. Free, no account, nothing uploaded.',
   },
   privacy: {
     path: '/privacy/',

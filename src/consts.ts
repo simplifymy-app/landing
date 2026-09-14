@@ -9,9 +9,26 @@ export const LANG = "en";
 export const TAGLINE =
   "Free Android apps with no ads, no accounts and no tracking. Gallery, Player, Recorder and Files — everything stays on your phone.";
 
+// A group carries `children`; the header renders those as a dropdown and treats the group
+// itself as a label, not a destination. `href` stays as the match prefix for aria-current.
 export const NAV = [
   { href: "/", label: "Home" },
-  { href: "/apps/", label: "Apps" },
+  {
+    href: "/mobile/",
+    label: "Apps",
+    children: [
+      {
+        href: "/mobile/",
+        label: "Mobile apps",
+        note: "Android · Gallery, Player, Recorder, Files",
+      },
+      {
+        href: "/desktop/",
+        label: "Desktop apps",
+        note: "macOS and Windows · Shot",
+      },
+    ],
+  },
   { href: "/privacy/", label: "Privacy" },
   { href: "/contact/", label: "Contact" },
 ] as const;
@@ -57,8 +74,25 @@ export const APPS = [
   },
 ] as const;
 
+// Desktop is its own registry: a different operating system, a different page and no
+// Play listing, so folding it into APPS would mean special-casing every reader of that.
+export const DESKTOP_APPS = [
+  {
+    name: "Shot",
+    fullName: "Simplify my Shot",
+    slug: "shot",
+    category: "DesignApplication",
+    os: "macOS, Windows",
+    summary:
+      "A screenshot and annotation tool for macOS and Windows. Capture an area, a window or a scrolling page, mark it up, read the text out of it, and copy it — without an account or an upload.",
+    available: false,
+    playId: null,
+  },
+] as const;
+
 export const CONTACT_APPS = [
   ...APPS.map((a) => a.name),
+  ...DESKTOP_APPS.map((a) => a.name),
   "Something else",
 ] as const;
 
@@ -91,6 +125,6 @@ export const FAQ = [
   },
   {
     q: "Which apps are available right now?",
-    a: "Gallery is on Google Play today. Player, Recorder and Files are in development and will be released the same way: free, with no ads and no data collection.",
+    a: "Gallery is on Google Play today. Player, Recorder and Files are in development, and Shot — the screenshot tool for macOS and Windows — is in development too. All of them will be released the same way: free, with no ads and no data collection.",
   },
 ] as const;

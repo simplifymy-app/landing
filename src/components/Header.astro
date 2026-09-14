@@ -5,15 +5,50 @@ import { NAV } from 'consts';
 // Both sides normalised, so the match survives trailingSlash: 'always'.
 const withSlash = (p: string) => (p.endsWith('/') ? p : `${p}/`);
 const path = withSlash(Astro.url.pathname);
+
+// A group is current when any page under it is, so "Apps" stays underlined on both
+// /mobile/ and /desktop/ even though the trigger itself goes nowhere.
+const isCurrent = (item: (typeof NAV)[number]) =>
+  'children' in item
+    ? item.children.some((c) => path === withSlash(c.href))
+    : path === withSlash(item.href);
 ---
 
 <header>
   <div class="shell bar">
     <a href="/" class="brand" title="Simplify my app"><Logo /></a>
     <nav aria-label="Main">
-      {NAV.map(({ href, label }) => (
-        <a href={href} aria-current={path === withSlash(href) ? 'page' : undefined}>{label}</a>
-      ))}
+      {NAV.map((item) =>
+        'children' in item ? (
+          <div class="menu" data-menu>
+            <button
+              type="button"
+              class="top"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-current={isCurrent(item) ? 'page' : undefined}
+              data-menu-trigger
+            >
+              {item.label}<span class="caret" aria-hidden="true"></span>
+            </button>
+            {/* Hidden from the accessibility tree while closed, so the two links are not
+                reachable by tab from a collapsed menu. */}
+            <div class="panel" data-menu-panel>
+              {item.children.map((child) => (
+                <a
+                  href={child.href}
+                  aria-current={path === withSlash(child.href) ? 'page' : undefined}
+                >
+                  <span class="child-label">{child.label}</span>
+                  <span class="child-note">{child.note}</span>
+                </a>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <a href={item.href} aria-current={isCurrent(item) ? 'page' : undefined}>{item.label}</a>
+        ),
+      )}
     </nav>
     <button id="theme-toggle" type="button" title="Switch theme" aria-label="Switch theme">
       <span class="dot"></span><span data-theme-label>DARK</span>
@@ -35,7 +70,9 @@ const path = withSlash(Astro.url.pathname);
   .brand:hover { color: inherit; }
 
   nav { display: flex; align-items: center; gap: 22px; }
-  nav a {
+  /* The group trigger is a button, so both selectors have to carry the nav item look. */
+  nav > a,
+  .top {
     position: relative;
     font-size: 14px;
     font-weight: 500;
@@ -43,9 +80,12 @@ const path = withSlash(Astro.url.pathname);
     padding: 6px 0;
     transition: color var(--t-state) var(--enter);
   }
-  nav a:hover { color: var(--text); }
-  nav a[aria-current='page'] { color: var(--text); }
-  nav a[aria-current='page']::after {
+  nav > a:hover,
+  .top:hover { color: var(--text); }
+  nav > a[aria-current='page'],
+  .top[aria-current='page'] { color: var(--text); }
+  nav > a[aria-current='page']::after,
+  .top[aria-current='page']::after {
     content: '';
     position: absolute;
     left: 0;
@@ -53,6 +93,95 @@ const path = withSlash(Astro.url.pathname);
     bottom: 0;
     height: 1px;
     background: var(--accent);
+  }
+
+  /*
+    Apps is a group, not a destination: hovering it — or activating it from the keyboard —
+    opens the two pages under it. The open state lives on the wrapper as [data-open] so
+    pointer and keyboard drive one thing; the CSS hover rule below is what still works if
+    the script never runs.
+  */
+  .menu { position: relative; display: flex; align-items: center; }
+  .top { display: inline-flex; align-items: center; gap: 7px; }
+  /* Two borders of a square, turned 45°: a chevron with no icon font behind it. */
+  .caret {
+    width: 5px;
+    height: 5px;
+    margin-top: -3px;
+    border-right: 1.2px solid currentColor;
+    border-bottom: 1.2px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform var(--t-state) var(--enter);
+  }
+  .menu[data-open] .caret { transform: rotate(225deg) translate(-2px, -2px); }
+
+  .panel {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: -14px;
+    z-index: 1;
+    min-width: 264px;
+    padding: 6px;
+    display: grid;
+    gap: 2px;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-5px);
+    transition:
+      opacity var(--t-state) var(--enter),
+      transform var(--t-state) var(--enter),
+      visibility 0s linear var(--t-state);
+  }
+  /*
+    The 14px between the trigger and the panel is dead space the pointer has to cross, and
+    leaving the trigger's box there would close the menu underneath it. This bridges it.
+  */
+  .panel::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -14px;
+    height: 14px;
+  }
+  .menu[data-open] > .panel {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition-delay: 0s;
+  }
+  /* Coarse pointers have no real hover, and the script's tap toggle covers them. */
+  @media (hover: hover) and (pointer: fine) {
+    .menu:hover > .panel {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      transition-delay: 0s;
+    }
+    .menu:hover .caret { transform: rotate(225deg) translate(-2px, -2px); }
+  }
+
+  .panel a {
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border-radius: var(--r-control);
+    color: var(--text-muted);
+    transition: background var(--t-state) var(--enter), color var(--t-state) var(--enter);
+  }
+  .panel a:hover,
+  .panel a:focus-visible { background: var(--surface-alt); color: var(--text); }
+  .panel a[aria-current='page'] { color: var(--text); }
+  .panel a[aria-current='page'] .child-label { color: var(--accent); }
+  .child-label { font-size: 14px; font-weight: 500; }
+  .child-note {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    line-height: 1.45;
+    color: var(--text-faint);
   }
 
   #theme-toggle {
@@ -97,9 +226,92 @@ const path = withSlash(Astro.url.pathname);
   @media (max-width: 720px) {
     .bar { gap: 8px; flex-wrap: wrap; height: auto; padding-block: 10px; }
     nav { order: 3; width: 100%; gap: 18px; }
-    nav a { padding: 4px 0; }
+    nav > a, .top { padding: 4px 0; }
+    /* Anchored to the nav row rather than the trigger, so a panel opened by the last
+       item cannot hang off the right edge of a narrow screen. */
+    .menu { position: static; }
+    .panel { top: calc(100% + 10px); left: 0; right: 0; min-width: 0; }
   }
 </style>
+
+<script>
+  // astro:page-load fires on first load and after every router swap, which replaces these
+  // nodes; the listeners go on the new ones each time.
+  document.addEventListener('astro:page-load', () => {
+    const menus = [...document.querySelectorAll<HTMLElement>('[data-menu]')];
+
+    const close = (menu: HTMLElement) => {
+      menu.removeAttribute('data-open');
+      menu.querySelector('[data-menu-trigger]')!.setAttribute('aria-expanded', 'false');
+    };
+    const open = (menu: HTMLElement) => {
+      menu.setAttribute('data-open', '');
+      menu.querySelector('[data-menu-trigger]')!.setAttribute('aria-expanded', 'true');
+    };
+
+    for (const menu of menus) {
+      const trigger = menu.querySelector<HTMLButtonElement>('[data-menu-trigger]')!;
+      const panel = menu.querySelector<HTMLElement>('[data-menu-panel]')!;
+      const links = () => [...panel.querySelectorAll<HTMLAnchorElement>('a')];
+
+      trigger.addEventListener('click', () => {
+        menu.hasAttribute('data-open') ? close(menu) : open(menu);
+      });
+
+      // Hover is already handled in CSS; this only keeps aria-expanded telling the truth
+      // about what is on screen.
+      menu.addEventListener('pointerenter', (e) => {
+        if (e.pointerType === 'mouse') trigger.setAttribute('aria-expanded', 'true');
+      });
+      menu.addEventListener('pointerleave', (e) => {
+        if (e.pointerType === 'mouse' && !menu.hasAttribute('data-open')) {
+          trigger.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Down from the trigger walks into the panel, which is the only way in for a
+      // keyboard once the menu is open.
+      trigger.addEventListener('keydown', (e) => {
+        if (e.key !== 'ArrowDown') return;
+        e.preventDefault();
+        open(menu);
+        links()[0]?.focus();
+      });
+
+      panel.addEventListener('keydown', (e) => {
+        const items = links();
+        const i = items.indexOf(document.activeElement as HTMLAnchorElement);
+        if (i < 0) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+          e.preventDefault();
+          const next = e.key === 'ArrowDown' ? i + 1 : i - 1;
+          items[(next + items.length) % items.length].focus();
+        }
+      });
+
+      menu.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape' || !menu.hasAttribute('data-open')) return;
+        close(menu);
+        trigger.focus();
+      });
+
+      // Tabbing out of the menu closes it. relatedTarget is null when focus leaves the
+      // document entirely, which also counts as out.
+      menu.addEventListener('focusout', (e) => {
+        if (!menu.contains(e.relatedTarget as Node | null)) close(menu);
+      });
+
+      panel.addEventListener('click', () => close(menu));
+    }
+
+    // A tap or click anywhere else puts every menu away.
+    document.addEventListener('pointerdown', (e) => {
+      for (const menu of menus) {
+        if (!menu.contains(e.target as Node)) close(menu);
+      }
+    });
+  });
+</script>
 
 <script>
   // astro:page-load fires on the first load and after every router swap, which replaces
