@@ -1,8 +1,5 @@
 ---
-// Shared by /desktop/ and /download/ so detection lives in one place. Client-side only,
-// so it costs a static page nothing.
 interface Props {
-  /** Where "every build" goes: an anchor on this page, or the download page. */
   browse?: string;
 }
 
@@ -25,7 +22,6 @@ const { browse = '/download/' } = Astro.props;
 </style>
 
 <script>
-  // Fires on first load and after every router swap, which replaces these elements.
   document.addEventListener('astro:page-load', () => {
     const blocks = document.querySelectorAll('[data-dl-cta]');
     if (!blocks.length) return;
@@ -37,8 +33,6 @@ const { browse = '/download/' } = Astro.props;
       'osx:x64': 'macOS (Intel)',
     };
 
-    // Client Hints are the only honest source, and only Chromium ships them. Everywhere
-    // else the UA string cannot tell an Apple Silicon Mac from an Intel one at all.
     const fromHints = async () => {
       const uad = navigator.userAgentData;
       if (!uad?.getHighEntropyValues) return null;
@@ -74,7 +68,7 @@ const { browse = '/download/' } = Astro.props;
 
     (async () => {
       const detected = (await fromHints()) ?? fromUserAgent();
-      if (!detected) return; // Linux, a phone, or something unrecognised: the list stands.
+      if (!detected) return;
 
       const { os, arch, certain } = detected;
 

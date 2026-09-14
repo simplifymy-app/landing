@@ -1,17 +1,13 @@
 ---
 import Logo from 'components/Logo.astro';
+import OsBadge from 'components/OsBadge.astro';
 import { NAV } from 'consts';
 
-// Both sides normalised, so the match survives trailingSlash: 'always'.
 const withSlash = (p: string) => (p.endsWith('/') ? p : `${p}/`);
 const path = withSlash(Astro.url.pathname);
 
-// A group is current when any page under it is, so "Apps" stays underlined on both
-// /mobile/ and /desktop/ even though the trigger itself goes nowhere.
 const isCurrent = (item: (typeof NAV)[number]) =>
-  'children' in item
-    ? item.children.some((c) => path === withSlash(c.href))
-    : path === withSlash(item.href);
+  'groups' in item ? path.startsWith(item.href) : path === withSlash(item.href);
 ---
 
 <header>
@@ -19,7 +15,7 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     <a href="/" class="brand" title="Simplify my app"><Logo /></a>
     <nav aria-label="Main">
       {NAV.map((item) =>
-        'children' in item ? (
+        'groups' in item ? (
           <div class="menu" data-menu>
             <button
               type="button"
@@ -31,17 +27,33 @@ const isCurrent = (item: (typeof NAV)[number]) =>
             >
               {item.label}<span class="caret" aria-hidden="true"></span>
             </button>
-            {/* Hidden from the accessibility tree while closed, so the two links are not
-                reachable by tab from a collapsed menu. */}
             <div class="panel" data-menu-panel>
-              {item.children.map((child) => (
-                <a
-                  href={child.href}
-                  aria-current={path === withSlash(child.href) ? 'page' : undefined}
-                >
-                  <span class="child-label">{child.label}</span>
-                  <span class="child-note">{child.note}</span>
-                </a>
+              <a
+                href={item.overview.href}
+                class="overview"
+                aria-current={path === withSlash(item.overview.href) ? 'page' : undefined}
+              >
+                <span class="child-label">{item.overview.label}</span>
+                <span class="go" aria-hidden="true">→</span>
+              </a>
+              {item.groups.map((group) => (
+                <div class="group">
+                  <div class="group-label" id={`menu-${group.label.toLowerCase()}`}>{group.label}</div>
+                  <div class="group-rows" role="group" aria-labelledby={`menu-${group.label.toLowerCase()}`}>
+                    {group.apps.map((app) => (
+                      <a
+                        href={app.path}
+                        aria-current={path === withSlash(app.path) ? 'page' : undefined}
+                      >
+                        <span class="child-label">{app.name}</span>
+                        <span class="child-badges">
+                          {!app.available && <span class="badge badge-sm badge-dev">In dev</span>}
+                          <OsBadge app={app} small />
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -70,7 +82,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
   .brand:hover { color: inherit; }
 
   nav { display: flex; align-items: center; gap: 22px; }
-  /* The group trigger is a button, so both selectors have to carry the nav item look. */
   nav > a,
   .top {
     position: relative;
@@ -95,15 +106,8 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     background: var(--accent);
   }
 
-  /*
-    Apps is a group, not a destination: hovering it — or activating it from the keyboard —
-    opens the two pages under it. The open state lives on the wrapper as [data-open] so
-    pointer and keyboard drive one thing; the CSS hover rule below is what still works if
-    the script never runs.
-  */
   .menu { position: relative; display: flex; align-items: center; }
   .top { display: inline-flex; align-items: center; gap: 7px; }
-  /* Two borders of a square, turned 45°: a chevron with no icon font behind it. */
   .caret {
     width: 5px;
     height: 5px;
@@ -120,7 +124,7 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     top: calc(100% + 14px);
     left: -14px;
     z-index: 1;
-    min-width: 264px;
+    min-width: 286px;
     padding: 6px;
     display: grid;
     gap: 2px;
@@ -136,10 +140,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
       transform var(--t-state) var(--enter),
       visibility 0s linear var(--t-state);
   }
-  /*
-    The 14px between the trigger and the panel is dead space the pointer has to cross, and
-    leaving the trigger's box there would close the menu underneath it. This bridges it.
-  */
   .panel::before {
     content: '';
     position: absolute;
@@ -154,7 +154,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     transform: none;
     transition-delay: 0s;
   }
-  /* Coarse pointers have no real hover, and the script's tap toggle covers them. */
   @media (hover: hover) and (pointer: fine) {
     .menu:hover > .panel {
       opacity: 1;
@@ -166,9 +165,10 @@ const isCurrent = (item: (typeof NAV)[number]) =>
   }
 
   .panel a {
-    display: grid;
-    gap: 3px;
-    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
     border-radius: var(--r-control);
     color: var(--text);
     transition: background var(--t-state) var(--enter), color var(--t-state) var(--enter);
@@ -177,12 +177,24 @@ const isCurrent = (item: (typeof NAV)[number]) =>
   .panel a:focus-visible { background: var(--elevated-hover); }
   .panel a[aria-current='page'] .child-label { color: var(--accent); }
   .child-label { font-size: 14px; font-weight: 500; }
-  .child-note {
+  .child-badges { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+
+  .overview { margin-bottom: 4px; }
+  .go { margin-left: auto; color: var(--text-faint); font-size: 13px; }
+  .overview:hover .go { color: var(--accent); }
+
+  .group + .group { margin-top: 4px; }
+  .group-label {
+    padding: 8px 12px 6px;
     font-family: var(--mono);
-    font-size: 10.5px;
-    line-height: 1.45;
-    color: var(--text-muted);
+    font-size: 9.5px;
+    font-weight: 500;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border-top: 1px solid var(--hairline);
   }
+  .group-rows { display: grid; gap: 1px; }
 
   #theme-toggle {
     display: flex;
@@ -200,11 +212,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
     transition: background var(--t-state) var(--enter), color var(--t-state) var(--enter);
   }
   #theme-toggle:hover { color: var(--text); }
-  /*
-    DARK and LIGHT are different lengths, so the button — and with it the whole right end
-    of the bar — used to resize on every switch. An invisible copy of the longer word holds
-    the column open, so the label swaps inside a box that never changes width.
-  */
   [data-theme-label] { display: inline-grid; justify-items: start; }
   [data-theme-label]::before {
     content: 'LIGHT';
@@ -222,21 +229,16 @@ const isCurrent = (item: (typeof NAV)[number]) =>
   }
   #theme-toggle:hover .dot { transform: scale(1.15); }
 
-  /* The bar wraps to two rows here, so it is trimmed to stay a thin sticky strip. */
   @media (max-width: 720px) {
     .bar { gap: 8px; flex-wrap: wrap; height: auto; padding-block: 10px; }
     nav { order: 3; width: 100%; gap: 18px; }
     nav > a, .top { padding: 4px 0; }
-    /* Anchored to the nav row rather than the trigger, so a panel opened by the last
-       item cannot hang off the right edge of a narrow screen. */
     .menu { position: static; }
     .panel { top: calc(100% + 10px); left: 0; right: 0; min-width: 0; }
   }
 </style>
 
 <script>
-  // astro:page-load fires on first load and after every router swap, which replaces these
-  // nodes; the listeners go on the new ones each time.
   document.addEventListener('astro:page-load', () => {
     const menus = [...document.querySelectorAll<HTMLElement>('[data-menu]')];
 
@@ -258,8 +260,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
         menu.hasAttribute('data-open') ? close(menu) : open(menu);
       });
 
-      // Hover is already handled in CSS; this only keeps aria-expanded telling the truth
-      // about what is on screen.
       menu.addEventListener('pointerenter', (e) => {
         if (e.pointerType === 'mouse') trigger.setAttribute('aria-expanded', 'true');
       });
@@ -269,8 +269,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
         }
       });
 
-      // Down from the trigger walks into the panel, which is the only way in for a
-      // keyboard once the menu is open.
       trigger.addEventListener('keydown', (e) => {
         if (e.key !== 'ArrowDown') return;
         e.preventDefault();
@@ -295,8 +293,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
         trigger.focus();
       });
 
-      // Tabbing out of the menu closes it. relatedTarget is null when focus leaves the
-      // document entirely, which also counts as out.
       menu.addEventListener('focusout', (e) => {
         if (!menu.contains(e.relatedTarget as Node | null)) close(menu);
       });
@@ -304,7 +300,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
       panel.addEventListener('click', () => close(menu));
     }
 
-    // A tap or click anywhere else puts every menu away.
     document.addEventListener('pointerdown', (e) => {
       for (const menu of menus) {
         if (!menu.contains(e.target as Node)) close(menu);
@@ -314,8 +309,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
 </script>
 
 <script>
-  // astro:page-load fires on the first load and after every router swap, which replaces
-  // the button this binds to. The module itself only ever runs once.
   document.addEventListener('astro:page-load', () => {
     const btn = document.getElementById('theme-toggle')!;
     const label = btn.querySelector('[data-theme-label]')!;
@@ -333,23 +326,15 @@ const isCurrent = (item: (typeof NAV)[number]) =>
         sync();
       };
 
-      // View transitions are what make the circular wipe possible; without them (or with
-      // motion turned down) the swap is instant and the token transitions carry it.
       const start = (document as any).startViewTransition?.bind(document);
       if (!start || matchMedia('(prefers-reduced-motion: reduce)').matches) {
         apply();
         return;
       }
 
-      // A second transition started while one is running skips the first outright, which
-      // is what a fast double-tap used to look like: an instant, unanimated swap.
       if (switching) return;
       switching = true;
 
-      // The circle grows from the point that was clicked, past the farthest viewport
-      // corner. The overshoot is spent off-screen, so the last thing visible is the edge
-      // leaving at full speed. Keyboard activation carries no pointer position (Chrome
-      // synthesises 0,0), so it falls back to the button's own centre.
       const box = btn.getBoundingClientRect();
       const pointer = event.clientX !== 0 || event.clientY !== 0;
       const x = pointer ? event.clientX : box.left + box.width / 2;
@@ -361,9 +346,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
       root.style.setProperty('--tt-y', `${y}px`);
       root.style.setProperty('--tt-r', `${radius}px`);
 
-      // Timing stays in the stylesheet with the rest of the motion tokens. The build
-      // minifies CSS times to whichever unit is shorter, so 560ms reaches this as '.56s'
-      // — the unit has to be read, not assumed.
       const ms = (name: string) => {
         const value = getComputedStyle(root).getPropertyValue(name).trim();
         return value.endsWith('ms') ? parseFloat(value) : parseFloat(value) * 1000;
@@ -377,10 +359,6 @@ const isCurrent = (item: (typeof NAV)[number]) =>
 
       const transition = start(apply);
 
-      // The stylesheet drives this same circle off --tt-*, which only works where custom
-      // properties inherit into the view transition pseudo-tree. Driving it here as well
-      // covers the engines where they don't, with identical geometry either way, and is
-      // itself skipped on engines that don't take a view transition pseudo-element here.
       transition.ready.then(() => {
         try {
           root.animate(

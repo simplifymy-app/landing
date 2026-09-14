@@ -102,7 +102,6 @@ const REST = [
   .email { font-family: var(--mono); font-size: 14px; color: var(--accent); }
 
   .perms { display: grid; gap: 14px; margin-top: 16px; }
-  /* A fixed name column, so every description starts on the same left edge. */
   .perm { display: grid; grid-template-columns: 210px 1fr; gap: 16px; align-items: baseline; }
   .perm-name { font-family: var(--mono); font-size: 12px; line-height: 1.6; }
   .perm-name.flagged { color: var(--accent); }
@@ -110,7 +109,6 @@ const REST = [
 
   @media (max-width: 560px) {
     .intro { padding: 35px 0 32px; }
-    /* Too narrow for two columns: the description goes under its name, still flush left. */
     .perm { grid-template-columns: 1fr; gap: 4px; }
     .perms { gap: 20px; }
   }

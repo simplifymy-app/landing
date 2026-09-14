@@ -24,14 +24,10 @@ if (routes.some((route) => route.src === REWRITE.src)) {
   process.exit(0);
 }
 
-// After the two 308 rules so the strip rule cannot undo it, before the filesystem phase
-// so the real route still matches afterwards.
 const filesystem = routes.findIndex((route) => route.handle === "filesystem");
 if (filesystem === -1)
   die("no `handle: filesystem` phase — the adapter output has changed shape");
 
-// Fail the build rather than insert a rewrite pointing at nothing, should an Astro or
-// adapter upgrade ever drop the trailing slash from its patterns.
 const rewritten = "/api/update/win-x64/releases.win-x64.json/";
 const served = routes
   .slice(filesystem)

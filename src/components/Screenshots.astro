@@ -1,0 +1,56 @@
+---
+import { Image } from 'astro:assets';
+import type { Shot } from '../lib/app-content';
+
+interface Props {
+  shots: Shot[];
+  wide?: boolean;
+  caption?: string;
+}
+
+const { shots, wide = false, caption } = Astro.props;
+const width = wide ? 1120 : 416;
+const densities = wide ? [1, 2] : [1];
+---
+
+<div class:list={['shots', wide ? 'wide' : 'strip']}>
+  {shots.map(({ dark, light, alt }) => (
+    <figure>
+      <Image src={dark} alt={alt} width={width} densities={densities} loading="lazy" class="shot-dark" />
+      <Image src={light} alt="" width={width} densities={densities} loading="lazy" class="shot-light" />
+    </figure>
+  ))}
+</div>
+{caption && <div class="caption">{caption}</div>}
+
+<style>
+  .shots figure { margin: 0; }
+  /* A shot pairs a dark and a light capture; the site's theme picks which one is shown. */
+  .shots :global(.shot-light) { display: none; }
+  :global([data-theme='light']) .shots :global(.shot-light) { display: block; }
+  :global([data-theme='light']) .shots :global(.shot-dark) { display: none; }
+
+  .strip { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+  /*
+    The figure is the flex item, so it is the one that has to refuse to shrink: left to the
+    default it squashes the shots down to whatever the screen is wide, the row always fits,
+    and the strip never scrolls — which is the whole point of it on a phone.
+  */
+  .strip figure { flex: none; }
+  .strip :global(img) {
+    width: 208px;
+    height: auto;
+    border-radius: var(--r-card);
+    border: 1px solid var(--hairline);
+  }
+  /* Each desktop capture already carries its own shadow, so nothing is drawn around them. */
+  .wide { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .wide figure { min-width: 0; }
+  .wide :global(img) { width: 100%; height: auto; }
+
+  .caption { font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); margin-top: 12px; }
+
+  @media (max-width: 560px) {
+    .wide { grid-template-columns: 1fr; }
+  }
+</style>

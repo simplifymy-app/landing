@@ -1,9 +1,5 @@
-// The inbox message, drawn with the site's own tokens, type scale and hairline rules.
-// Tables and inline styles throughout: Gmail strips <style> blocks, flexbox and grid.
 import { SITE, SITE_URL } from "consts";
 
-// One per site theme. Both are imported so THEME below is a real one-word switch; ?inline
-// bakes them into the bundle as data: URIs, and the unused one costs ~34KB of dead string.
 import logoDark from "../assets/email-logo-dark.png?inline";
 import logoLight from "../assets/email-logo-light.png?inline";
 
@@ -45,16 +41,10 @@ const THEME: keyof typeof THEMES = "light";
 
 const C = THEMES[THEME];
 
-/**
- * The logo is attached and referenced as cid:, never linked from the site: most clients
- * block remote images on first open, and all but Apple Mail strip SVG outright.
- */
 export const LOGO_CID = "simplify-logo";
 
-/** --r-control and --r-card. The site is almost square-cornered; rounder reads as foreign. */
 const R = { control: "4px", card: "6px" } as const;
 
-// The site's own stacks, fallbacks included: no client is guaranteed to fetch a web font.
 const SANS =
   "'Space Grotesk', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif";
 const MONO =
@@ -84,16 +74,11 @@ const stamp = (d: Date) =>
     timeZone: "UTC",
   })} UTC`;
 
-/** .kicker — mono 10.5/500, 0.09em, uppercase, --text-faint. */
 const kicker = (text: string) =>
   `<div style="font-family:${MONO};font-size:10.5px;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:${C.faint};">${esc(
     text,
   )}</div>`;
 
-/**
- * One cell of the site's hairline card grid — a 1px grid gap on the page, a top border
- * here, which lands on the same pixel and survives Outlook.
- */
 const metaRow = (label: string, value: string, first: boolean) => `
   <tr>
     <td style="padding:16px 20px;background:${C.bg};${
@@ -127,9 +112,6 @@ export function textFor(m: ContactMessage) {
   ].join("\n");
 }
 
-/**
- * @param logoSrc Usually `cid:${LOGO_CID}`, matching the attachment the endpoint sends.
- */
 export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
   const preheader = `${m.kind} · ${m.app} — from ${m.name}`;
 
@@ -141,12 +123,9 @@ export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
 <meta name="color-scheme" content="${THEME}">
 <meta name="supported-color-schemes" content="${THEME}">
 <title>${esc(subjectFor(m))}</title>
-<!-- Apple Mail, iOS Mail and Outlook for Mac honour this and get the site's real
-     typography. Gmail drops it and lands on the same system-ui the site falls back to. -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap">
 </head>
 <body style="margin:0;padding:0;background:${C.bg};-webkit-font-smoothing:antialiased;">
-  <!-- Inbox preview line; hidden in the message itself. -->
   <div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(preheader)}</div>
 
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${C.bg};">
@@ -154,19 +133,15 @@ export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
       <td align="center" style="padding:0 24px 56px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
 
-          <!-- The site header: the logo on a 68px bar closed by a hairline. -->
           <tr>
             <td style="height:68px;padding:22px 0 20px;border-bottom:1px solid ${C.hairline};">
               <a href="${SITE_URL}/" style="text-decoration:none;">
-                <!-- Styled alt text, so a blocked or broken image still reads as the brand
-                     rather than a grey placeholder box. -->
                 <img src="${logoSrc}" alt="${esc(SITE)}" width="150" height="74"
                      style="display:block;border:0;width:150px;max-width:150px;height:auto;font-family:${SANS};font-size:21px;font-weight:600;letter-spacing:-0.03em;color:${C.text};text-decoration:none;">
               </a>
             </td>
           </tr>
 
-          <!-- .intro: kicker, .page-h1, .lede -->
           <tr>
             <td style="padding:35px 0 30px;">
               ${kicker("Contact form · New message")}
@@ -179,7 +154,6 @@ export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
             </td>
           </tr>
 
-          <!-- The hairline card grid the rest of the site lays its facts out in. -->
           <tr>
             <td style="padding:0 0 30px;">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${C.hairline};border-radius:${R.card};overflow:hidden;">
@@ -214,7 +188,6 @@ export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
             </td>
           </tr>
 
-          <!-- .btn.btn-accent: 44px tall, 0 20px, 14.5/500, --r-control. -->
           <tr>
             <td style="padding:0 0 40px;">
               <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -231,7 +204,6 @@ export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
             </td>
           </tr>
 
-          <!-- The site footer: hairline on top, mono 11.5 in --text-faint. -->
           <tr>
             <td style="padding:26px 0 0;border-top:1px solid ${C.hairline};font-family:${MONO};font-size:11.5px;line-height:1.7;color:${C.faint};">
               Sent from the contact form at
@@ -248,10 +220,6 @@ export function htmlFor(m: ContactMessage, logoSrc = `cid:${LOGO_CID}`) {
 </html>`;
 }
 
-/**
- * Everything the send call needs apart from the envelope. THEME picks the attached logo,
- * so the endpoint never has to know about images.
- */
 export function buildEmail(m: ContactMessage) {
   return {
     subject: subjectFor(m),

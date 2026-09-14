@@ -1,13 +1,9 @@
-// The Velopack update feed: new UpdateManager("https://simplifymy.app/api/update/win-x64")
-
 import { GitHubError, findAsset, getRelease, getSignedUrl } from '../../../../lib/github.js';
 
 export const prerender = false;
 
 const RIDS = ['win-x64', 'win-arm64', 'osx-x64', 'osx-arm64'];
 
-// An inlined manifest is read into memory, so size is checked first. Velopack's are a
-// few hundred bytes; anything near this is not one.
 const MAX_INLINE_BYTES = 1024 * 1024;
 
 const problem = (status, error) =>
@@ -24,8 +20,6 @@ export const GET = async ({ params }) => {
     return problem(404, 'Unknown runtime identifier.');
   }
 
-  // `[...file]` captures separators too, so a nested path arrives as one string with
-  // slashes in it. An asset name is a single flat filename; neither shape can match one.
   if (!file || file.includes('/') || file.includes('\\') || file.includes('..')) {
     return problem(400, 'Not a valid asset name.');
   }
@@ -34,7 +28,6 @@ export const GET = async ({ params }) => {
     const release = await getRelease();
     const asset = findAsset(release, file);
 
-    // The release's own asset list is the allowlist.
     if (!asset) {
       return problem(404, `${file} is not part of the current release.`);
     }
@@ -42,8 +35,7 @@ export const GET = async ({ params }) => {
     const url = await getSignedUrl(asset.id);
 
     if (file.endsWith('.json') && asset.size <= MAX_INLINE_BYTES) {
-      // No headers of our own: the URL carries its own authorisation, and sending the
-      // token to S3 as well is rejected outright.
+      // No auth headers: the signed URL carries its own and S3 rejects a second.
       const res = await fetch(url);
 
       if (!res.ok) {
@@ -54,7 +46,6 @@ export const GET = async ({ params }) => {
       return new Response(await res.text(), {
         headers: {
           'content-type': 'application/json',
-          // Matches the listing's own cache window.
           'cache-control': 'public, max-age=60',
         },
       });

@@ -1,0 +1,243 @@
+---
+import Base from 'layouts/Base.astro';
+import AppTile from 'components/AppTile.astro';
+import OsBadge from 'components/OsBadge.astro';
+import Screenshots from 'components/Screenshots.astro';
+import DownloadCta from 'components/DownloadCta.astro';
+import { APPS, playUrl, type App } from 'consts';
+import { APP_CONTENT } from '../../lib/app-content';
+import { PAGES } from '../../lib/pages';
+
+export function getStaticPaths() {
+  return APPS.map((app) => ({ params: { slug: app.slug }, props: { app } }));
+}
+
+interface Props {
+  app: App;
+}
+
+const { app } = Astro.props;
+const content = APP_CONTENT[app.slug];
+const meta = PAGES[app.slug];
+
+const store = playUrl(app.playId);
+const isDesktop = app.platform === 'desktop';
+
+const others = APPS.filter((other) => other.slug !== app.slug);
+---
+
+<Base
+  page={app.slug}
+  title={`${app.name} — ${isDesktop ? 'macOS and Windows' : 'Android'}`}
+  description={app.summary}
+  pageType="ItemPage"
+  trail={[{ name: 'Apps', path: '/apps/' }, { name: app.name, path: app.path }]}
+  app={app.slug}
+>
+  <main class="shell">
+    <section class="intro">
+      <div class="line">
+        <span class="kicker">{isDesktop ? 'Desktop app' : 'Mobile app'}</span>
+        <OsBadge app={app} />
+        {app.available
+          ? <span class="badge badge-live">Available</span>
+          : <span class="badge badge-dev">In development</span>}
+        <a href="/apps/" class="back">← All apps</a>
+      </div>
+
+      <div class="title">
+        {!content.highlights && (
+          <AppTile mini={content.mini} tint={content.tint} size={64} />
+        )}
+        <h1 class="page-h1">{content.headline}</h1>
+      </div>
+
+      <p class="lede">{content.lede}</p>
+      <div class="meta">{content.meta}</div>
+    </section>
+
+    {content.highlights && (
+      <section class="does">
+        {content.highlights.map((item, i) => (
+          <div class="does-cell" style={`--d: ${120 + i * 90}ms;`}>
+            <AppTile mini={item.mini} tint={item.tint} />
+            <div class="does-title">{item.title}</div>
+            <div class="does-body">{item.body}</div>
+          </div>
+        ))}
+      </section>
+    )}
+
+    {content.highlights && (
+      <section class="gallery">
+        <h2 class="section-h2 first">What it looks like</h2>
+        <Screenshots shots={content.shots} wide={isDesktop} caption={content.caption} />
+      </section>
+    )}
+
+    <section class="body">
+      {content.body.map((paragraph) => <p class="desc">{paragraph}</p>)}
+
+      <div class="get">
+        {store && (
+          <a href={store} class="btn btn-accent">Get {app.name} on Google Play</a>
+        )}
+        {'downloadPath' in app && <DownloadCta browse={app.downloadPath} />}
+        {'downloadPath' in app && (
+          <p class="get-note">Free. No account, no upload — and it keeps itself up to date after the first install.</p>
+        )}
+        {!app.available && (
+          <p class="get-note">Not released yet. It is being built now, and the screens below come from the build in progress.</p>
+        )}
+      </div>
+
+      <h2 class="section-h2">What it does</h2>
+      <ul class="features">
+        {content.features.map((f) => <li>{f}</li>)}
+      </ul>
+
+      {!content.highlights && (
+        <>
+          <h2 class="section-h2">What it looks like</h2>
+          <Screenshots shots={content.shots} wide={isDesktop} caption={content.caption} />
+        </>
+      )}
+
+      <div class="ask">
+        <div class="ask-copy">{content.ask[0]}<br />{content.ask[1]}</div>
+        <a href="/contact/" class="btn btn-accent">Request a feature</a>
+      </div>
+    </section>
+
+    <section class="more">
+      <h2 class="kicker">The rest of them</h2>
+      <div class="more-rows">
+        {others.map((other) => (
+          <a href={other.path} class="more-row">
+            <AppTile
+              mini={APP_CONTENT[other.slug].mini}
+              tint={APP_CONTENT[other.slug].tint}
+              size={40}
+              dim={!other.available}
+            />
+            <span class="more-copy">
+              <span class="more-name">{other.name}</span>
+              <span class="more-badges">
+                <OsBadge app={other} small />
+                {other.available
+                  ? <span class="badge badge-sm badge-live">Available</span>
+                  : <span class="badge badge-sm badge-dev">In dev</span>}
+              </span>
+            </span>
+          </a>
+        ))}
+      </div>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .back {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    line-height: 22px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .back:hover { color: var(--accent); }
+
+  .intro { padding: 28px 0 40px; }
+  .line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 0 0 16px; }
+  .line .kicker { line-height: 22px; }
+  .title { display: flex; align-items: center; gap: 20px; }
+  .page-h1 { max-width: 26ch; min-width: 0; text-wrap: balance; }
+  .lede { max-width: 58ch; }
+  .meta { margin-top: 18px; font-family: var(--mono); font-size: 11.5px; color: var(--text-faint); }
+
+  .does {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 26px;
+    padding-bottom: 44px;
+  }
+  .does-cell { animation: rise var(--t-enter) var(--enter) var(--d) backwards; }
+  .does-cell :global(.tile) { margin-bottom: 16px; }
+  .does-title { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .does-body { font-size: 14px; line-height: 1.6; color: var(--text-muted); }
+
+  .body { padding: 40px 0 0; border-top: 1px solid var(--hairline); }
+  .desc { margin: 0 0 14px; font-size: 16px; line-height: 1.65; color: var(--text-muted); max-width: 62ch; }
+
+  .get { margin: 26px 0 4px; }
+  .get-note { margin: 12px 0 0; font-size: 13.5px; line-height: 1.5; color: var(--text-faint); max-width: 52ch; }
+
+  .section-h2 {
+    margin: 40px 0 20px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px 34px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .features li { font-size: 14.5px; line-height: 1.55; }
+
+  .gallery { padding: 40px 0 44px; border-top: 1px solid var(--hairline); }
+  .section-h2.first { margin-top: 0; }
+  .gallery + .body { padding-top: 0; border-top: 0; }
+
+  .ask {
+    margin-top: 34px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    padding: 22px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ask-copy { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--text-muted); }
+
+  .more { padding: 56px 0 80px; }
+  .more .kicker { display: block; margin-bottom: 20px; }
+  .more-rows { display: grid; grid-template-columns: repeat(auto-fit, minmax(236px, 1fr)); gap: 12px; }
+  .more-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 12px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    transition: border-color var(--t-state) var(--enter), background var(--t-state) var(--enter);
+  }
+  .more-row:hover { color: inherit; border-color: var(--text-faint); background: var(--surface); }
+  .more-copy { display: grid; gap: 7px; min-width: 0; }
+  .more-name { font-size: 16px; font-weight: 500; }
+  .more-badges { display: flex; flex-wrap: nowrap; gap: 6px; }
+
+  @media (max-width: 720px) {
+    .does { grid-template-columns: repeat(2, 1fr); gap: 28px 22px; }
+  }
+
+  @media (max-width: 560px) {
+    .title { display: block; }
+    .title :global(.tile) { width: 52px; margin: 0 0 16px; }
+    .does { grid-template-columns: 1fr; gap: 26px; }
+    .features { grid-template-columns: 1fr; }
+    .wide { grid-template-columns: 1fr; }
+    .more-rows { grid-template-columns: 1fr; }
+  }
+</style>

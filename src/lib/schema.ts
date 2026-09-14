@@ -1,8 +1,6 @@
 import type { WithContext, Thing, Graph } from 'schema-dts';
-import { APPS, DESKTOP_APPS, EMAIL, FAQ, LANG, SITE, SITE_URL, TAGLINE, playUrl } from 'consts';
-
-// One connected @graph per page: stable @ids mean the app's publisher, the site's publisher
-// and the breadcrumb's organisation read as one entity, not three lookalikes.
+import { APPS, EMAIL, FAQ, LANG, SITE, SITE_URL, TAGLINE, appBySlug, playUrl } from 'consts';
+import type { App, AppSlug } from 'consts';
 
 const ORG_ID = `${SITE_URL}/#organization`;
 const SITE_ID = `${SITE_URL}/#website`;
@@ -11,8 +9,6 @@ const abs = (path: string) => new URL(path, SITE_URL).href;
 
 const LOGO_ID = `${SITE_URL}/#logo`;
 
-// A top-level node, not nested in Organization, so logo and primaryImageOfPage resolve
-// to one image rather than two copies.
 const logo = {
   '@type': 'ImageObject',
   '@id': LOGO_ID,
@@ -45,24 +41,19 @@ const website = {
   publisher: { '@id': ORG_ID },
 } as const;
 
-// Priced explicitly at zero so the "free" claim is machine-readable.
-type RegistryApp = (typeof APPS)[number] | (typeof DESKTOP_APPS)[number];
+const appId = (app: App) => `${SITE_URL}${app.path}#${app.slug}`;
 
-const softwareApplication = (
-  app: RegistryApp,
-  { page, os }: { page: string; os: string },
-) => {
-  // Falls back to our own download page: an app served from this site is not PreOrder.
+const softwareApplication = (app: App) => {
   const store = playUrl(app.playId) ?? ('downloadPath' in app ? abs(app.downloadPath) : null);
   return {
     '@type': 'SoftwareApplication',
-    '@id': `${SITE_URL}${page}#${app.slug}`,
-    name: `${'fullName' in app ? app.fullName : app.name} — ${SITE}`,
+    '@id': appId(app),
+    name: `${app.fullName} — ${SITE}`,
     alternateName: app.name,
     applicationCategory: app.category,
-    operatingSystem: os,
+    operatingSystem: app.os,
     description: app.summary,
-    url: `${SITE_URL}${page}#${app.slug}`,
+    url: abs(app.path),
     inLanguage: LANG,
     isAccessibleForFree: true,
     publisher: { '@id': ORG_ID },
@@ -102,23 +93,21 @@ const faqPage = () => ({
 });
 
 export interface SchemaOptions {
-  /** Page path, leading and trailing slash included, e.g. "/mobile/". */
   path: string;
   title: string;
   description: string;
-  /** Trail below the home page; home itself is prepended. */
   trail?: { name: string; path: string }[];
   apps?: boolean;
-  desktop?: boolean;
+  app?: AppSlug;
   faq?: boolean;
-  pageType?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage';
-  /** Absolute URL of this page's Open Graph card. */
+  pageType?: 'WebPage' | 'AboutPage' | 'ContactPage' | 'CollectionPage' | 'ItemPage';
   image?: string;
 }
 
 export function buildSchema(options: SchemaOptions): WithContext<Graph> {
-  const { path, title, description, trail = [], apps, desktop, faq, image, pageType = 'WebPage' } = options;
+  const { path, title, description, trail = [], apps, app, faq, image, pageType = 'WebPage' } = options;
   const isHome = path === '/';
+  const subject = app ? appBySlug(app) : undefined;
 
   const nodes: Thing[] = [logo, organization, website];
 
@@ -144,6 +133,7 @@ export function buildSchema(options: SchemaOptions): WithContext<Graph> {
         }
       : {}),
     ...(isHome ? {} : { breadcrumb: { '@id': `${abs(path)}#breadcrumb` } }),
+    ...(subject ? { mainEntity: { '@id': appId(subject) } } : {}),
   } as Thing);
 
   if (!isHome) {
@@ -152,20 +142,8 @@ export function buildSchema(options: SchemaOptions): WithContext<Graph> {
     );
   }
 
-  if (apps)
-    nodes.push(
-      ...APPS.map(
-        (app) =>
-          softwareApplication(app, { page: '/mobile/', os: 'Android' }) as Thing,
-      ),
-    );
-  if (desktop)
-    nodes.push(
-      ...DESKTOP_APPS.map(
-        (app) =>
-          softwareApplication(app, { page: '/desktop/', os: app.os }) as Thing,
-      ),
-    );
+  if (apps) nodes.push(...APPS.map((entry) => softwareApplication(entry) as Thing));
+  else if (subject) nodes.push(softwareApplication(subject) as Thing);
   if (faq) nodes.push(faqPage() as Thing);
 
   return { '@context': 'https://schema.org', '@graph': nodes } as WithContext<Graph>;

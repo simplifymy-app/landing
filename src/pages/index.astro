@@ -1,16 +1,19 @@
 ---
 import Base from 'layouts/Base.astro';
 import HeroGraphic from 'components/HeroGraphic.astro';
-import { DESKTOP_APPS, FAQ } from 'consts';
+import { DESKTOP_APPS, FAQ, MOBILE_APPS } from 'consts';
 
-const APPS = [
-  { name: 'Gallery', blurb: 'A photo and video album that reads what is already on your phone. It does not even ask for internet permission.', status: 'On Google Play', live: true },
-  { name: 'Player', blurb: 'A music player for the files already on your phone. Background playback, lock screen and headset keys — and no internet permission.', status: 'In development', live: false },
-  { name: 'Recorder', blurb: 'Voice recording with a real waveform, marks while you record, and simple cut-and-fade editing afterwards.', status: 'In development', live: false },
-  { name: 'Files', blurb: 'A two-pane file manager. Mark on one side, copy or move to the other. The way file managers used to work.', status: 'In development', live: false },
-];
+const row = (app: (typeof MOBILE_APPS)[number] | (typeof DESKTOP_APPS)[number]) => ({
+  ...app,
+  status: app.available
+    ? app.playId
+      ? 'On Google Play'
+      : 'Free download'
+    : 'In development',
+});
 
-const DESKTOP = DESKTOP_APPS[0];
+const PHONE = MOBILE_APPS.map(row);
+const DESKTOP = DESKTOP_APPS.map(row);
 
 const IDEA = [
   ['No ads', 'Not a banner, not a full-screen interstitial, not “watch a video to unlock”. Nothing is sold to anyone.'],
@@ -25,7 +28,6 @@ const IDEA = [
   title="Free Android apps, no ads, no tracking"
   description="Gallery, Player, Recorder and Files: plain Android apps that are free, collect nothing and upload nothing. No ads, no accounts, no subscriptions."
   apps
-  desktop
   faq
 >
   <main>
@@ -61,29 +63,31 @@ const IDEA = [
 
     <section class="shell block">
       <div class="block-head">
-        <h2 class="kicker">On your phone · 04</h2>
-        <a href="/mobile/" class="all">All mobile apps →</a>
+        <h2 class="kicker">On your phone · 0{PHONE.length}</h2>
+        <a href="/apps/" class="all">All apps →</a>
       </div>
       <div class="apps">
-        {APPS.map(({ name, blurb, status, live }) => (
-          <a href={`/mobile/#${name.toLowerCase()}`} class="app-row">
-            <span class="app-name">{name}</span>
-            <span class="app-blurb">{blurb}</span>
-            <span class:list={['app-status', { dev: !live }]}>{status}</span>
+        {PHONE.map((app) => (
+          <a href={app.path} class="app-row">
+            <span class="app-name">{app.name}</span>
+            <span class="app-blurb">{app.summary}</span>
+            <span class:list={['app-status', { dev: !app.available }]}>{app.status}</span>
           </a>
         ))}
       </div>
 
       <div class="block-head second">
-        <h2 class="kicker">On your desktop · 01</h2>
-        <a href="/desktop/" class="all">About Shot →</a>
+        <h2 class="kicker">On your desktop · 0{DESKTOP.length}</h2>
+        <a href="/apps/shot/" class="all">About Shot →</a>
       </div>
       <div class="apps">
-        <a href="/desktop/" class="app-row">
-          <span class="app-name">{DESKTOP.name}</span>
-          <span class="app-blurb">{DESKTOP.summary}</span>
-          <span class="app-status">Free download</span>
-        </a>
+        {DESKTOP.map((app) => (
+          <a href={app.path} class="app-row">
+            <span class="app-name">{app.name}</span>
+            <span class="app-blurb">{app.summary}</span>
+            <span class:list={['app-status', { dev: !app.available }]}>{app.status}</span>
+          </a>
+        ))}
       </div>
     </section>
 
@@ -158,7 +162,6 @@ const IDEA = [
   .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 26px; }
   .block > .kicker { display: block; margin-bottom: 26px; }
   .block-head > .kicker { margin: 0; }
-  /* A second heading inside the same block needs the air that the block padding gave the first. */
   .block-head.second { margin-top: 46px; }
   .all {
     font-family: var(--mono);
@@ -225,7 +228,6 @@ const IDEA = [
     font-weight: 500;
     letter-spacing: -0.01em;
   }
-  /* A plus that becomes a minus, drawn from two rules so there is no icon font to load. */
   .mark { position: relative; width: 11px; height: 11px; flex: none; }
   .mark::before,
   .mark::after {

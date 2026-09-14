@@ -2,29 +2,22 @@
 import Base from 'layouts/Base.astro';
 
 const PALETTE = [
-  ['#718CFF', '#5A70CC'], // blue
-  ['#DEA858', '#B18646'], // amber
-  ['#61BF8D', '#4D9870'], // green
-  ['#D96B8B', '#AD556F'], // pink
-  ['#AD8DFF', '#8A70CC'], // purple
+  ['#718CFF', '#5A70CC'],
+  ['#DEA858', '#B18646'],
+  ['#61BF8D', '#4D9870'],
+  ['#D96B8B', '#AD556F'],
+  ['#AD8DFF', '#8A70CC'],
 ];
 
-// A 5x7 pixel face per digit; the two are stitched into 17-column rows with one blank
-// column between them, and every '#' becomes a gradient tile.
 const FOUR = ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'];
 const ZERO = ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'];
 
-// The furthest tile from the origin of the wave: last row plus last column.
 const LAST = FOUR.length - 1 + 16;
 
 const CELLS = FOUR.map((_, row) => `${FOUR[row]}.${ZERO[row]}.${FOUR[row]}`)
   .flatMap((line, row) =>
     [...line].map((mark, col) => ({
-      // The palette is walked along the diagonal, so the colour bands and the animation
-      // wave travel together across the number.
       gradient: PALETTE[(row + col) % PALETTE.length],
-      // Two waves over the same diagonal: one counting up for the entrance, one
-      // counting down so the number dissolves from its far corner instead.
       in: (row + col) * 22,
       out: (LAST - row - col) * 15,
       lit: mark === '#',
@@ -34,7 +27,7 @@ const CELLS = FOUR.map((_, row) => `${FOUR[row]}.${ZERO[row]}.${FOUR[row]}`)
 
 const LINKS = [
   ['/', 'Home', 'The whole idea, in four lines.'],
-  ['/mobile/', 'Mobile apps', 'Gallery, Player, Recorder and Files.'],
+  ['/apps/', 'Apps', 'Gallery, Player, Recorder, Files and Shot.'],
   ['/privacy/', 'Privacy', 'The short version: nothing is collected.'],
   ['/contact/', 'Contact', 'Tell me what you were looking for.'],
 ];
@@ -109,8 +102,6 @@ const LINKS = [
     gap: 8px;
   }
   .path code {
-    /* The requested path is arbitrary and can be long; let it clip rather than push the
-       column wider than its track. */
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -138,8 +129,6 @@ const LINKS = [
     aspect-ratio: 1;
     border-radius: 3px;
     background: linear-gradient(150deg, var(--from), var(--to));
-    /* backwards, not forwards: once the entrance is over the tile is back on its own
-       base style, which is what lets the transition below take over on the toggle. */
     animation: tile-in var(--t-enter) var(--enter) var(--in) backwards;
     transition:
       opacity var(--t-enter) var(--exit) var(--out),
@@ -208,16 +197,12 @@ const LINKS = [
 </style>
 
 <script>
-  // astro:page-load fires on first load and after every router swap, which replaces the
-  // elements bound here. The module itself only runs once.
   document.addEventListener('astro:page-load', () => {
     const path = document.getElementById('path');
     const mosaic = document.getElementById('mosaic');
     const button = document.getElementById('simplify') as HTMLButtonElement | null;
     if (!path || !mosaic || !button) return;
 
-    // The 404 is served for an address Astro never rendered a page for, so the real one
-    // is only knowable here.
     const asked = location.pathname + location.search;
     if (asked !== '/404' && asked !== '/404/') path.textContent = asked;
 

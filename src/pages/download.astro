@@ -5,13 +5,10 @@ import { DESKTOP_APPS } from 'consts';
 import { filenameFor } from '../lib/builds.js';
 import { getRelease } from '../lib/github.js';
 
-// Rendered per request: a build-time version would go stale the moment a release shipped
-// without a redeploy of this site.
 export const prerender = false;
 
 const SHOT = DESKTOP_APPS[0];
 
-// The version is decoration on a list of links: if it cannot be read, the links still work.
 let release = null;
 try {
   release = await getRelease();
@@ -21,8 +18,6 @@ try {
 
 const version = release?.tag_name ?? null;
 
-// UTC and formatted by hand: Intl would resolve against whichever region the function
-// runs in, so a late-in-the-day release would render a different date per region.
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const published = release?.published_at
   ? (() => {
@@ -34,7 +29,6 @@ const published = release?.published_at
 const href = (platform, arch, kind) =>
   `/api/download/?platform=${platform}&arch=${arch}&kind=${kind}`;
 
-// Every build, always on the page: detection is a guess, so it is never the only way out.
 const PLATFORMS = [
   {
     os: 'Windows',
@@ -63,8 +57,6 @@ const PLATFORMS = [
   },
 ];
 
-// Only what the release actually ships, so a build that is not published yet — the MSI,
-// today — is absent rather than a link that 404s. Unreadable release: show everything.
 const shipped = release ? new Set(release.assets.map((asset) => asset.name)) : null;
 const has = (platform, arch, kind) => {
   const name = filenameFor(platform, arch, kind);

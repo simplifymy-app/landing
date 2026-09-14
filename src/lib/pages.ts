@@ -1,12 +1,6 @@
-// The layout reads this for the OG image path and the OG route reads it to draw that
-// image, so a page cannot advertise a card that was never generated.
-
 export interface PageMeta {
-  /** Route path, leading and trailing slash included. */
   path: string;
-  /** Headline drawn on the card. */
   title: string;
-  /** Supporting line on the card. */
   description: string;
 }
 
@@ -17,17 +11,41 @@ export const PAGES = {
     description:
       'Free Android apps with no ads, no accounts and no tracking. Nothing is collected, nothing is uploaded.',
   },
-  mobile: {
-    path: '/mobile/',
-    title: 'Apps I use every day.',
+  apps: {
+    path: '/apps/',
+    title: 'Five apps, one idea.',
     description:
-      'Gallery, Player, Recorder and Files. Free, no ads, no accounts, no in-app purchases.',
+      'Gallery, Player, Recorder, Files and Shot. Free, no ads, no accounts, no tracking.',
   },
-  desktop: {
-    path: '/desktop/',
-    title: 'The same idea, on the desktop.',
+  gallery: {
+    path: '/apps/gallery/',
+    title: 'Your photos, in the folders they already live in.',
     description:
-      'Shot: screenshots, annotation and OCR for macOS and Windows. Free, no account, nothing uploaded.',
+      'Gallery for Android. No ads, no account — and no internet permission at all.',
+  },
+  player: {
+    path: '/apps/player/',
+    title: 'The music already on your phone, playing.',
+    description:
+      'Player for Android. Background playback, lock screen, headset keys. No internet permission.',
+  },
+  recorder: {
+    path: '/apps/recorder/',
+    title: 'A voice recorder that shows you the sound.',
+    description:
+      'Recorder for Android. Live waveform, marks while you record, cut and fade afterwards.',
+  },
+  files: {
+    path: '/apps/files/',
+    title: 'Two folders open at once.',
+    description:
+      'Files for Android. A two-pane file manager: mark on one side, copy or move to the other.',
+  },
+  shot: {
+    path: '/apps/shot/',
+    title: 'Take the shot. Say what matters on it.',
+    description:
+      'Simplify my Shot for macOS and Windows. Capture, annotate and read text. Free, nothing uploaded.',
   },
   privacy: {
     path: '/privacy/',

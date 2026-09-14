@@ -1,0 +1,139 @@
+---
+import Base from 'layouts/Base.astro';
+import AppTile from 'components/AppTile.astro';
+import OsBadge from 'components/OsBadge.astro';
+import { APPS, APP_GROUPS } from 'consts';
+import { APP_CONTENT } from '../../lib/app-content';
+
+const count = (n: number) => String(n).padStart(2, '0');
+---
+
+<Base
+  page="apps"
+  title="Apps — Gallery, Player, Recorder, Files & Shot"
+  description="Every app in one place: Gallery, Player, Recorder and Files for Android, and Shot for macOS and Windows. Free, no ads, no accounts, no tracking."
+  pageType="CollectionPage"
+  trail={[{ name: 'Apps', path: '/apps/' }]}
+  apps
+>
+  <main class="shell">
+    <section class="intro">
+      <div class="kicker">Apps · {count(APPS.length)}</div>
+      <h1 class="page-h1">Five apps, one idea.</h1>
+      <p class="lede">Free. No ads, no accounts, no tracking, no in-app purchases — in all of them, not just the released ones. Gallery and Shot are out today; Player, Recorder and Files are in development.</p>
+    </section>
+
+    {APP_GROUPS.map((group) => (
+      <section class="group">
+        <div class="group-head">
+          <h2 class="kicker">{group.label} · {count(group.apps.length)}</h2>
+          <span class="kicker group-note">{group.note}</span>
+        </div>
+
+        <div class="cards">
+          {group.apps.map((app, i) => (
+            <a href={app.path} class="card" style={`--d: ${120 + i * 70}ms;`}>
+              <div class="card-head">
+                <AppTile
+                  mini={APP_CONTENT[app.slug].mini}
+                  tint={APP_CONTENT[app.slug].tint}
+                  size={56}
+                  dim={!app.available}
+                />
+                <span class="card-title">
+                  <span class="name">{app.name}</span>
+                  <span class="badges">
+                    <OsBadge app={app} small />
+                    {app.available
+                      ? <span class="badge badge-sm badge-live">Available</span>
+                      : <span class="badge badge-sm badge-dev">In development</span>}
+                  </span>
+                </span>
+              </div>
+              <p class="blurb">{app.summary}</p>
+              <span class="go">{app.available ? `Get ${app.name}` : `About ${app.name}`} →</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <section class="closing">
+      <div class="ask-copy">Three of the five are still being built.<br />This is the best moment to ask for something.</div>
+      <a href="/contact/" class="btn btn-accent">Request a feature</a>
+    </section>
+  </main>
+</Base>
+
+<style>
+  .intro { padding: 35px 0 8px; }
+  .intro .kicker { display: block; margin-bottom: 22px; }
+  .page-h1 { max-width: 16ch; }
+  .lede { max-width: 58ch; }
+
+  .group { padding: 44px 0 0; }
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--hairline);
+    margin-bottom: 24px;
+  }
+  .group-note { color: var(--text-faint); text-transform: none; letter-spacing: 0.04em; }
+
+  /* auto-fill, not auto-fit: auto-fit collapses empty tracks and stretches a lone card. */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(276px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 22px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    background: var(--bg);
+    animation: rise var(--t-enter) var(--enter) var(--d) backwards;
+    transition: border-color var(--t-state) var(--enter), background var(--t-state) var(--enter);
+  }
+  .card:hover { color: inherit; border-color: var(--text-faint); background: var(--surface); }
+
+  .card-head { display: flex; align-items: center; gap: 14px; }
+  .card-title { display: grid; gap: 5px; min-width: 0; }
+  .name { font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+  .badges { display: flex; gap: 6px; flex-wrap: nowrap; }
+
+  .blurb { margin: 18px 0;  font-size: 14.5px; line-height: 1.6; color: var(--text-muted); }
+  .go {
+    margin-top: auto;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .closing {
+    margin: 56px 0 80px;
+    border: 1px solid var(--hairline);
+    border-radius: var(--r-card);
+    padding: 22px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ask-copy { font-family: var(--mono); font-size: 12px; line-height: 1.7; color: var(--text-muted); }
+
+  @media (max-width: 560px) {
+    .intro { padding: 35px 0 4px; }
+    .group { padding-top: 38px; }
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>

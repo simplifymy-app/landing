@@ -14,7 +14,6 @@ export const prerender = false;
 const LIMITS = { name: 80, email: 160, message: 4000 } as const;
 const MIN_MESSAGE = 10;
 
-// Deliberately loose: the real proof an address exists is the reply that reaches it.
 const EMAIL_RE = /^[^\s@,]+@[^\s@,.]+\.[^\s@,]{2,}$/;
 
 const json = (status: number, body: Record<string, unknown>) =>
@@ -54,7 +53,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     return json(400, { error: "Malformed request." });
   }
 
-  // Hidden field. A real person never fills it in; most naive bots fill in everything.
+  // Honeypot: bots fill every field.
   if (str(payload.company)) return json(200, { ok: true });
 
   const name = str(payload.name);
@@ -97,9 +96,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     const { error } = await resend.emails.send({
       from: `Simplify my app <${CONTACT_FROM_EMAIL}>`,
       to: CONTACT_TO_EMAIL,
-      // Hitting Reply in the inbox answers the sender, not the form.
       replyTo: `${name} <${email}>`,
-      // Subject, both bodies and the inline logo attachment.
       ...buildEmail(contact),
     });
 

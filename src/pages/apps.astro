@@ -1,9 +1,0 @@
----
-// /apps/ was the mobile page before the desktop one existed, so it is the URL that is
-// indexed and linked from outside. A config redirect cannot serve it: the adapter emits
-// the rule as /apps, and the trailing-slash rule ahead of it has already sent /apps to
-// /apps/ by then, so the rule never fires. This route answers /apps/ itself.
-export const prerender = false;
-
-return Astro.redirect('/mobile/', 301);
----

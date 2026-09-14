@@ -5,7 +5,6 @@ import { CONTACT_APPS, CONTACT_KINDS, EMAIL } from 'consts';
 const APPS = CONTACT_APPS;
 const KINDS = CONTACT_KINDS;
 
-// Rendered href already works without JS; the script keeps it in sync with the fields.
 const initialMailto = `mailto:${EMAIL}?subject=${encodeURIComponent(`${KINDS[0]} · ${APPS[0]}`)}&body=`;
 
 const CARDS = [
@@ -122,7 +121,6 @@ const CARDS = [
   textarea { padding: 12px; line-height: 1.6; resize: vertical; }
   input::placeholder, textarea::placeholder { color: var(--text-faint); }
 
-  /* Offscreen rather than display:none — some bots skip fields they can tell are hidden. */
   .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 
   .actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -160,8 +158,6 @@ const CARDS = [
 </style>
 
 <script>
-  // astro:page-load fires on the first load and after every router swap, which replaces
-  // the elements this binds to. The module itself only ever runs once.
   document.addEventListener('astro:page-load', () => {
     const form = document.getElementById('form') as HTMLFormElement | null;
     if (!form) return;
@@ -177,8 +173,6 @@ const CARDS = [
     const submit = document.getElementById('submit') as HTMLButtonElement;
     const status = document.getElementById('status') as HTMLParagraphElement;
 
-    // The mailto link stays live as a fallback for anyone who would rather use their own
-    // client — and as the escape hatch when the endpoint is unreachable.
     const compose = () => {
       const subject = encodeURIComponent(`${kind.value} · ${app.value}`);
       send.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(body.value)}`;
@@ -196,7 +190,6 @@ const CARDS = [
       event.preventDefault();
       if (submit.disabled) return;
 
-      // Lets the browser say which field is wrong before anything crosses the network.
       if (!form.reportValidity()) return;
 
       submit.disabled = true;

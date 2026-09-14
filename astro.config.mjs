@@ -6,18 +6,20 @@ import vercel from "@astrojs/vercel";
 
 const SITE = "https://simplifymy.app";
 
+const APP_PAGE = ["src/pages/apps/[slug].astro", "src/consts.ts"];
+
 const ROUTES = {
   "/": { source: "src/pages/index.astro", priority: 1.0, changefreq: "weekly" },
-  "/mobile/": {
-    source: "src/pages/mobile.astro",
+  "/apps/": {
+    source: "src/pages/apps/index.astro",
     priority: 0.9,
     changefreq: "weekly",
   },
-  "/desktop/": {
-    source: "src/pages/desktop.astro",
-    priority: 0.9,
-    changefreq: "weekly",
-  },
+  "/apps/gallery/": { source: APP_PAGE, priority: 0.8, changefreq: "weekly" },
+  "/apps/player/": { source: APP_PAGE, priority: 0.7, changefreq: "weekly" },
+  "/apps/recorder/": { source: APP_PAGE, priority: 0.7, changefreq: "weekly" },
+  "/apps/files/": { source: APP_PAGE, priority: 0.7, changefreq: "weekly" },
+  "/apps/shot/": { source: APP_PAGE, priority: 0.8, changefreq: "weekly" },
   "/contact/": {
     source: "src/pages/contact.astro",
     priority: 0.6,
@@ -30,27 +32,25 @@ const ROUTES = {
   },
 };
 
-// Google discards lastmod wholesale once a site claims every page changed on every deploy,
-// so this reads the file's last commit rather than the build clock.
-const lastCommit = (file) => {
+const lastCommit = (source) => {
+  const files = Array.isArray(source) ? source : [source];
   try {
-    const iso = execFileSync("git", ["log", "-1", "--format=%cI", "--", file], {
-      encoding: "utf8",
-    }).trim();
+    const iso = execFileSync(
+      "git",
+      ["log", "-1", "--format=%cI", "--", ...files],
+      { encoding: "utf8" },
+    ).trim();
     return iso ? new Date(iso) : undefined;
   } catch {
-    return undefined; // no git history available, e.g. a shallow CI checkout
+    return undefined;
   }
 };
 
 export default defineConfig({
   site: SITE,
-  // Every page is prerendered as before. Only /api/contact opts out with
-  // `export const prerender = false`, so the adapter emits one function and nothing else.
   output: "static",
   adapter: vercel(),
 
-  // Read at runtime from the Vercel project's environment, never inlined into the build.
   env: {
     schema: {
       RESEND_API_KEY: envField.string({ context: "server", access: "secret" }),
@@ -63,29 +63,23 @@ export default defineConfig({
         access: "secret",
         default: "onboarding@resend.dev",
       }),
-      // Fine-grained PAT, Contents: Read-only on the private binaries repository.
       GITHUB_TOKEN: envField.string({ context: "server", access: "secret" }),
     },
   },
 
-  // Keeps the canonical tag, the sitemap entry and the served URL a single string.
   trailingSlash: "always",
-
 
   build: { format: "directory", inlineStylesheets: "auto" },
 
   integrations: [
     sitemap({
-      // The share cards are images served from a route; listed as pages they read as
-      // soft-404s. /apps/ only exists to 301 to /mobile/, and a sitemap that advertises a
-      // redirect asks Google to crawl a URL it is told in the same breath to forget.
       filter: (page) =>
         !page.includes("/og/") &&
         !page.includes("/404") &&
         !page.includes("/api/") &&
-        // Linked to deliberately, not found by search.
         !page.includes("/download/") &&
-        page !== `${SITE}/apps/`,
+        page !== `${SITE}/mobile/` &&
+        page !== `${SITE}/desktop/`,
       serialize(item) {
         const path = item.url.replace(SITE, "");
         const route = ROUTES[path];
@@ -103,8 +97,6 @@ export default defineConfig({
 
     robotsTxt({
       sitemap: [`${SITE}/sitemap-index.xml`],
-      // Nothing is disallowed on purpose: social scrapers honour robots.txt, so blocking
-      // /og/ would silently kill the link previews those cards exist for.
       policy: [{ userAgent: "*", allow: "/" }],
     }),
   ],

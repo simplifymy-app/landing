@@ -1,12 +1,9 @@
-// GET /api/download/?platform=win&arch=x64&kind=setup -> 302 to a signed S3 URL.
-
 import { ARCHES, KINDS, PLATFORMS, filenameFor } from '../../lib/builds.js';
 import { GitHubError, findAsset, getRelease, getSignedUrl } from '../../lib/github.js';
 
 export const prerender = false;
 
-/* TODO: auth gate — a session or licence check goes here. It runs before any GitHub call,
-   so an unauthorised request spends no rate-limit unit and mints no signed URL. */
+/* TODO: auth gate — a session or licence check goes here. */
 function isAuthorized(request) {
   return true;
 }
@@ -52,7 +49,6 @@ export const GET = async ({ request, url }) => {
       status: 302,
       headers: {
         location: await getSignedUrl(asset.id),
-        // The signed URL dies in about five minutes; a cached redirect would outlive it.
         'cache-control': 'no-store',
       },
     });
@@ -64,7 +60,6 @@ export const GET = async ({ request, url }) => {
   }
 };
 
-// Link checkers and some download managers probe with HEAD first.
 export const HEAD = GET;
 
 export const ALL = () => problem(405, 'Use GET to request a download.');

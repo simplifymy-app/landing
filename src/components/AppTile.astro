@@ -1,0 +1,296 @@
+---
+import type { Mini } from '../lib/app-content';
+
+interface Props {
+  mini: Mini;
+  tint: readonly [string, string];
+  size?: number;
+  dim?: boolean;
+  class?: string;
+}
+
+const { mini, tint, size = 64, dim = false, class: extra } = Astro.props;
+---
+
+<span
+  class:list={['tile', { dim }, extra]}
+  style={`--from: ${tint[0]}; --to: ${tint[1]}; --size: ${size}px;`}
+  aria-hidden="true"
+>
+  {mini === 'grid' && (
+    <span class="mini grid">
+      {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((n) => <span class="cell" style={`--i: ${n}`}></span>)}
+    </span>
+  )}
+  {mini === 'eq' && (
+    <span class="mini eq">
+      {[0, 1, 2, 3].map((n) => <span class="bar" style={`--i: ${n}`}></span>)}
+    </span>
+  )}
+  {mini === 'wave' && (
+    <span class="mini wave">
+      {[0, 1, 2, 3, 4, 5, 6].map((n) => <span class="bar" style={`--i: ${Math.abs(n - 3)}`}></span>)}
+    </span>
+  )}
+  {mini === 'panes' && (
+    <span class="mini panes">
+      <span class="pane"></span>
+      <span class="pane"></span>
+      <span class="chip"></span>
+    </span>
+  )}
+  {mini === 'marquee' && (
+    <span class="mini marquee">
+      <span class="frame"></span>
+      {[0, 1, 2, 3].map((n) => <span class="handle" style={`--i: ${n}`}></span>)}
+    </span>
+  )}
+  {mini === 'reticle' && (
+    <span class="mini reticle">
+      {[0, 1, 2, 3].map((n) => <span class="corner" style={`--i: ${n}`}></span>)}
+      <span class="dot"></span>
+    </span>
+  )}
+  {mini === 'arrow' && (
+    <span class="mini arrow">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="shaft" d="M3 21 L19 5" />
+        <path class="head" d="M11 5h8v8" />
+      </svg>
+    </span>
+  )}
+  {mini === 'read' && (
+    <span class="mini read">
+      {[0, 1, 2, 3].map((n) => <span class="line" style={`--i: ${n}`}></span>)}
+      <span class="scan"></span>
+    </span>
+  )}
+  {mini === 'pin' && (
+    <span class="mini pin">
+      <span class="sheet back"></span>
+      <span class="sheet front"></span>
+    </span>
+  )}
+</span>
+
+<style>
+  .tile {
+    position: relative;
+    width: var(--size);
+    flex: none;
+    aspect-ratio: 1;
+    border-radius: var(--r-tile);
+    background: linear-gradient(150deg, var(--from), var(--to));
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    transition: transform var(--t-enter) var(--enter), opacity var(--t-enter) var(--enter);
+  }
+  .tile::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(330deg, var(--from), var(--to));
+    opacity: 0;
+    transition: opacity var(--t-enter) var(--enter);
+  }
+  :global(a:hover) .tile { transform: translateY(-3px); }
+  :global(a:hover) .tile::after { opacity: 1; }
+  .dim { opacity: 0.72; }
+  :global(a:hover) .dim { opacity: 1; }
+
+  .mini { position: relative; z-index: 1; width: 46%; height: 46%; }
+  .cell, .bar, .chip { background: rgba(255, 255, 255, 0.92); border-radius: 1.5px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr); gap: 10%; }
+  .cell { opacity: 0.45; animation: cell-lit 3.6s var(--enter) calc(var(--i) * 230ms) infinite backwards; }
+  @keyframes cell-lit { 0%, 100% { opacity: 0.4; } 45% { opacity: 1; } }
+
+  .eq { display: flex; align-items: flex-end; gap: 9%; }
+  .eq .bar { flex: 1; height: 100%; transform-origin: bottom; transform: scaleY(0.55); }
+  .eq .bar { animation: eq-step 1.25s var(--enter) calc(var(--i) * -370ms) infinite alternate; }
+  .eq .bar:nth-child(2) { animation-duration: 1.75s; }
+  .eq .bar:nth-child(3) { animation-duration: 0.95s; }
+  .eq .bar:nth-child(4) { animation-duration: 1.45s; }
+  @keyframes eq-step { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
+
+  .wave { display: flex; align-items: center; gap: 8%; }
+  .wave .bar {
+    flex: 1;
+    height: 100%;
+    transform-origin: center;
+    transform: scaleY(0.45);
+    animation: wave-pulse 1.5s var(--enter) calc(var(--i) * 140ms) infinite alternate backwards;
+  }
+  @keyframes wave-pulse { from { transform: scaleY(0.16); } to { transform: scaleY(1); } }
+
+  .panes { display: flex; align-items: center; gap: 14%; }
+  .pane { flex: 1; height: 86%; border: 1px solid rgba(255, 255, 255, 0.82); border-radius: 2px; }
+  .chip { position: absolute; left: 10%; top: 46%; width: 24%; height: 8%; animation: hand-off 3.4s var(--enter) infinite; }
+  @keyframes hand-off {
+    0%, 12% { transform: translateX(0); opacity: 1; }
+    46%, 66% { transform: translateX(225%); opacity: 1; }
+    76%, 84% { transform: translateX(225%); opacity: 0; }
+    85% { transform: translateX(0); opacity: 0; }
+    95%, 100% { transform: translateX(0); opacity: 1; }
+  }
+
+  .marquee, .reticle, .arrow, .read, .pin { width: 50%; height: 50%; }
+
+  .frame {
+    position: absolute;
+    inset: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.95);
+    border-radius: 2px;
+    animation: marquee 3.2s var(--enter) infinite;
+  }
+  .handle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #fff;
+    border-radius: 1px;
+    animation: marquee-dot 3.2s var(--enter) infinite;
+  }
+  .handle:nth-child(2) { top: -2px; left: -2px; }
+  .handle:nth-child(3) { top: -2px; right: -2px; }
+  .handle:nth-child(4) { bottom: -2px; right: -2px; }
+  .handle:nth-child(5) { bottom: -2px; left: -2px; }
+  @keyframes marquee {
+    0%, 8% { transform: scale(0.3); opacity: 0.5; }
+    38%, 74% { transform: scale(1); opacity: 1; }
+    96%, 100% { transform: scale(0.3); opacity: 0.5; }
+  }
+  @keyframes marquee-dot {
+    0%, 30% { opacity: 0; }
+    42%, 74% { opacity: 1; }
+    88%, 100% { opacity: 0; }
+  }
+
+  .reticle .corner {
+    position: absolute;
+    width: 36%;
+    height: 36%;
+    border: 2px solid rgba(255, 255, 255, 0.95);
+    animation: focus 2.2s var(--enter) calc(var(--i) * -60ms) infinite alternate;
+  }
+  .reticle .corner:nth-child(1) {
+    top: 0;
+    left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    border-top-left-radius: 3px;
+    --tx: -52%;
+    --ty: -52%;
+  }
+  .reticle .corner:nth-child(2) {
+    top: 0;
+    right: 0;
+    border-left: 0;
+    border-bottom: 0;
+    border-top-right-radius: 3px;
+    --tx: 52%;
+    --ty: -52%;
+  }
+  .reticle .corner:nth-child(3) {
+    bottom: 0;
+    right: 0;
+    border-left: 0;
+    border-top: 0;
+    border-bottom-right-radius: 3px;
+    --tx: 52%;
+    --ty: 52%;
+  }
+  .reticle .corner:nth-child(4) {
+    bottom: 0;
+    left: 0;
+    border-right: 0;
+    border-top: 0;
+    border-bottom-left-radius: 3px;
+    --tx: -52%;
+    --ty: 52%;
+  }
+  @keyframes focus {
+    from { transform: translate(var(--tx), var(--ty)); opacity: 0.55; }
+    to { transform: none; opacity: 1; }
+  }
+  .dot {
+    position: absolute;
+    inset: 38%;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    animation: lens 2.2s var(--enter) infinite alternate;
+  }
+  @keyframes lens {
+    from { transform: scale(0.3); opacity: 0.5; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .arrow svg { width: 100%; height: 100%; overflow: visible; }
+  .arrow path {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.95);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .arrow .shaft { stroke-dasharray: 24; animation: draw 2.8s var(--enter) infinite; }
+  .arrow .head { stroke-dasharray: 16; animation: draw-head 2.8s var(--enter) infinite; }
+  @keyframes draw {
+    0% { stroke-dashoffset: 24; }
+    45%, 82% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: 24; }
+  }
+  @keyframes draw-head {
+    0%, 42% { stroke-dashoffset: 16; }
+    62%, 82% { stroke-dashoffset: 0; }
+    100% { stroke-dashoffset: 16; }
+  }
+
+  .read { display: grid; align-content: center; gap: 18%; overflow: hidden; }
+  .line {
+    height: 2.5px;
+    border-radius: 1.25px;
+    background: rgba(255, 255, 255, 0.4);
+    animation: lit 3s var(--enter) calc(var(--i) * 260ms) infinite;
+  }
+  .line:nth-child(1) { width: 100%; }
+  .line:nth-child(2) { width: 72%; }
+  .line:nth-child(3) { width: 88%; }
+  .line:nth-child(4) { width: 54%; }
+  @keyframes lit { 0%, 100% { background: rgba(255, 255, 255, 0.35); } 30% { background: rgba(255, 255, 255, 1); } }
+  .scan {
+    position: absolute;
+    left: -10%;
+    right: -10%;
+    height: 1.5px;
+    background: rgba(255, 255, 255, 0.9);
+    animation: scan 3s linear infinite;
+  }
+  @keyframes scan { 0% { top: -6%; } 70%, 100% { top: 104%; } }
+
+  .pin .sheet {
+    position: absolute;
+    width: 74%;
+    height: 74%;
+    border-radius: 2px;
+  }
+  .pin .back { right: 0; bottom: 0; border: 1.5px solid rgba(255, 255, 255, 0.5); }
+  .pin .front {
+    left: 0;
+    top: 0;
+    background: rgba(255, 255, 255, 0.95);
+    animation: lift 3.4s var(--enter) infinite;
+  }
+  @keyframes lift {
+    0%, 16% { transform: none; }
+    46%, 72% { transform: translate(-9%, -9%); }
+    94%, 100% { transform: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cell, .bar, .chip, .frame, .handle, .corner, .dot, .arrow path, .line, .pin .front { animation: none; }
+    .scan { display: none; }
+    .eq .bar, .wave .bar { transform: scaleY(0.7); }
+  }
+</style>

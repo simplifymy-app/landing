@@ -9,37 +9,16 @@ export const LANG = "en";
 export const TAGLINE =
   "Free Android apps with no ads, no accounts and no tracking. Gallery, Player, Recorder and Files — everything stays on your phone.";
 
-// A group carries `children`; the header renders those as a dropdown and treats the group
-// itself as a label, not a destination. `href` stays as the match prefix for aria-current.
-export const NAV = [
-  { href: "/", label: "Home" },
-  {
-    href: "/mobile/",
-    label: "Apps",
-    children: [
-      {
-        href: "/mobile/",
-        label: "Mobile apps",
-        note: "Android · Gallery, Player, Recorder, Files",
-      },
-      {
-        href: "/desktop/",
-        label: "Desktop apps",
-        note: "macOS and Windows · Shot",
-      },
-    ],
-  },
-  { href: "/privacy/", label: "Privacy" },
-  { href: "/contact/", label: "Contact" },
-] as const;
-
-// Only what has to agree across the site, so the structured data and the store buttons
-// cannot drift from each other. Pages keep their own presentational copy.
 export const APPS = [
   {
     name: "Gallery",
+    fullName: "Simplify my Gallery",
     slug: "gallery",
+    path: "/apps/gallery/",
+    platform: "mobile",
     category: "PhotoVideoApplication",
+    os: "Android",
+    platforms: ["android"],
     summary:
       "A photo and video album that reads what is already on your phone. It does not request the internet permission at all.",
     available: true,
@@ -47,8 +26,13 @@ export const APPS = [
   },
   {
     name: "Player",
+    fullName: "Simplify my Player",
     slug: "player",
+    path: "/apps/player/",
+    platform: "mobile",
     category: "MusicApplication",
+    os: "Android",
+    platforms: ["android"],
     summary:
       "A music player for the files already on your phone. Background playback, lock screen and headset keys, no internet permission.",
     available: false,
@@ -56,8 +40,13 @@ export const APPS = [
   },
   {
     name: "Recorder",
+    fullName: "Simplify my Recorder",
     slug: "recorder",
+    path: "/apps/recorder/",
+    platform: "mobile",
     category: "UtilitiesApplication",
+    os: "Android",
+    platforms: ["android"],
     summary:
       "Voice recording with a real waveform, marks while you record, and simple cut-and-fade editing afterwards.",
     available: false,
@@ -65,36 +54,62 @@ export const APPS = [
   },
   {
     name: "Files",
+    fullName: "Simplify my Files",
     slug: "files",
+    path: "/apps/files/",
+    platform: "mobile",
     category: "UtilitiesApplication",
+    os: "Android",
+    platforms: ["android"],
     summary:
       "A two-pane file manager. Mark on one side, copy or move to the other. The way file managers used to work.",
     available: false,
     playId: null,
   },
-] as const;
-
-// Desktop is its own registry: a different operating system, a different page and no
-// Play listing, so folding it into APPS would mean special-casing every reader of that.
-export const DESKTOP_APPS = [
   {
     name: "Shot",
     fullName: "Simplify my Shot",
     slug: "shot",
+    path: "/apps/shot/",
+    platform: "desktop",
     category: "DesignApplication",
     os: "macOS, Windows",
+    platforms: ["macos", "windows"],
     summary:
       "A screenshot and annotation tool for macOS and Windows. Capture an area, a window or a scrolling page, mark it up, read the text out of it, and copy it — without an account or an upload.",
     available: true,
     playId: null,
-    // No store listing: the schema offer and the download page point at this same path.
     downloadPath: "/download/",
   },
 ] as const;
 
+export type App = (typeof APPS)[number];
+export type AppSlug = App["slug"];
+
+export const MOBILE_APPS = APPS.filter((a) => a.platform === "mobile");
+export const DESKTOP_APPS = APPS.filter((a) => a.platform === "desktop");
+
+export const appBySlug = (slug: string) => APPS.find((a) => a.slug === slug);
+
+export const APP_GROUPS = [
+  { label: "Mobile", note: "Android", apps: MOBILE_APPS },
+  { label: "Desktop", note: "macOS and Windows", apps: DESKTOP_APPS },
+] as const;
+
+export const NAV = [
+  { href: "/", label: "Home" },
+  {
+    href: "/apps/",
+    label: "Apps",
+    overview: { href: "/apps/", label: "All apps" },
+    groups: APP_GROUPS,
+  },
+  { href: "/privacy/", label: "Privacy" },
+  { href: "/contact/", label: "Contact" },
+] as const;
+
 export const CONTACT_APPS = [
   ...APPS.map((a) => a.name),
-  ...DESKTOP_APPS.map((a) => a.name),
   "Something else",
 ] as const;
 
@@ -107,7 +122,6 @@ export const CONTACT_KINDS = [
 export const playUrl = (playId: string | null) =>
   playId ? `https://play.google.com/store/apps/details?id=${playId}` : null;
 
-// Rendered on the home page and mirrored into FAQ schema; the two must stay identical.
 export const FAQ = [
   {
     q: "Are these Android apps really free?",

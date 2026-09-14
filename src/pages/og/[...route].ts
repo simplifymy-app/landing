@@ -1,8 +1,6 @@
 import { OGImageRoute } from 'astro-og-canvas';
 import { PAGES } from '../../lib/pages';
 
-// Colours are the dark theme's tokens from global.css, repeated by hand because CanvasKit
-// cannot read CSS. OGImageRoute is async: unawaited, Astro reports no getStaticPaths.
 export const { getStaticPaths, GET } = await OGImageRoute({
   pages: PAGES,
   getImageOptions: (_path, page: (typeof PAGES)[keyof typeof PAGES]) => ({

@@ -11,8 +11,6 @@ import { PAGES, ogImagePath, type PageKey } from '../lib/pages';
 import { buildSchema, type SchemaOptions } from '../lib/schema';
 import 'styles/global.css';
 
-// As a URL so the preload matches the content-hashed file the stylesheet requests;
-// a hand-written /_astro/ path would 404 on the next build.
 import headingFont from '@fontsource/space-grotesk/files/space-grotesk-latin-600-normal.woff2?url';
 
 interface Props {
@@ -23,7 +21,7 @@ interface Props {
   trail?: SchemaOptions['trail'];
   pageType?: SchemaOptions['pageType'];
   apps?: boolean;
-  desktop?: boolean;
+  app?: SchemaOptions['app'];
   faq?: boolean;
 }
 
@@ -35,11 +33,10 @@ const {
   trail,
   pageType,
   apps = false,
-  desktop = false,
+  app,
   faq = false,
 } = Astro.props;
 
-// Matches trailingSlash: 'always', so the canonical and the sitemap entry are one string.
 const path = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const canonical = new URL(path, Astro.site).href;
 
@@ -55,7 +52,7 @@ const schema = noindex
       trail,
       pageType,
       apps,
-      desktop,
+      app,
       faq,
       image: ogImage,
     });
@@ -107,7 +104,6 @@ const schema = noindex
           { rel: 'icon', href: '/favicon.svg', type: 'image/svg+xml' },
           { rel: 'apple-touch-icon', href: '/apple-touch-icon.png', sizes: '180x180' },
           { rel: 'manifest', href: '/site.webmanifest' },
-          // The heading face is almost always the LCP element.
           {
             rel: 'preload',
             as: 'font',
@@ -129,7 +125,6 @@ const schema = noindex
 
     <ClientRouter />
     <script is:inline>
-      // Blocking: sets the theme before first paint so tokens never flash.
       (() => {
         let t = null;
         try { t = localStorage.getItem('simplify-site-theme'); } catch {}
@@ -138,8 +133,6 @@ const schema = noindex
         }
         document.documentElement.dataset.theme = t;
 
-        // The router replaces the <html> attributes wholesale on navigation, and this
-        // script does not re-run, so hand the current theme to the incoming document.
         document.addEventListener('astro:before-swap', (e) => {
           e.newDocument.documentElement.dataset.theme = document.documentElement.dataset.theme;
         });
